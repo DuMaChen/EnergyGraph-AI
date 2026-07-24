@@ -1,0 +1,25 @@
+.env
+deploy/.env
+course-data/*
+!course-data/.gitkeep
+!course-data/normalized/
+course-data/normalized/*.pdf
+!course-data/normalized/manifest.json
+!course-data/normalized/graph-baseline.json
+reports/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+
+# Original teaching files and registration material stay out of the source
+# repository; the normalized manifest and source metadata are already tracked
+# where the deployment and reproducibility checks expect them.
+/参赛题目.docx
+/教材课件分章节pdf版.zip
+/电力系统储能技术 知识图谱.xlsx
+/揭榜挂帅报名表(盖章版).pdf
+
+# Server-only backup and release state must never be pushed to GitHub.
+/backups/
+/05-作品代码/*.tar.gz

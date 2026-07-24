@@ -1,0 +1,8 @@
+{
+  "version": "scenario-v1",
+  "scenarios": [
+    {"key": "grid-dispatch", "title": "储能电站方案讨论", "assumptions": "模拟数据"},
+    {"key": "battery-fault", "title": "储能系统故障分析", "assumptions": "模拟告警和测量值"}
+  ],
+  "states": ["active", "paused", "completed", "aborted"]
+}

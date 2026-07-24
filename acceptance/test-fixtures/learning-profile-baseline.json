@@ -1,0 +1,5 @@
+{
+  "rule_version": "learning-rule-v1",
+  "statuses": ["mastered", "learning", "weak", "unassessed"],
+  "thresholds": {"mastered": 0.8, "weak": 0.6}
+}

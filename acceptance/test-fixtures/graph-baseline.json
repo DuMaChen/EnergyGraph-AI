@@ -1,0 +1,215 @@
+{
+  "version": "graph-v1",
+  "source": "电力系统储能技术 知识图谱.xlsx",
+  "nodes": [
+    {
+      "id": "kp-1-1",
+      "chapter_id": 1,
+      "name": "1.1 电力储能技术的概念",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-1-2",
+      "chapter_id": 1,
+      "name": "1.2 电力储能技术的发展",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-1-3",
+      "chapter_id": 1,
+      "name": "1.3 储能技术在电力系统中的应用",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-2-1",
+      "chapter_id": 2,
+      "name": "2.1 电力系统的概念",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-2-2",
+      "chapter_id": 2,
+      "name": "2.2 电力系统的运行特点和要求",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-2-3",
+      "chapter_id": 2,
+      "name": "2.3 储能技术的典型应用",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-3-1",
+      "chapter_id": 3,
+      "name": "3.1 抽水蓄能电站的组成及工作原理",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-3-2",
+      "chapter_id": 3,
+      "name": "3.2 新型电力储能系统的组成",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-3-3",
+      "chapter_id": 3,
+      "name": "3.3 新型电能存储设备工作原理",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-3-4",
+      "chapter_id": 3,
+      "name": "3.4 储能变流器拓扑及并网控制",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-3-5",
+      "chapter_id": 3,
+      "name": "3.5 储能监控系统结构及通信",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-4-1",
+      "chapter_id": 4,
+      "name": "4.1 抽水蓄能电站的规划配置",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-4-2",
+      "chapter_id": 4,
+      "name": "4.2 电化学储能系统的规划配置",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-4-3",
+      "chapter_id": 4,
+      "name": "4.3 电池储能系统集成技术",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-5-1",
+      "chapter_id": 5,
+      "name": "5.1 电力储能系统的接入",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-5-2",
+      "chapter_id": 5,
+      "name": "5.2 电力储能系统的运行控制",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-5-3",
+      "chapter_id": 5,
+      "name": "5.3 电力储能系统的运行维护",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-5-4",
+      "chapter_id": 5,
+      "name": "5.4 电力储能系统的运行案例",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-6-1",
+      "chapter_id": 6,
+      "name": "6.1 电力储能系统的性能检测",
+      "category": "概念性"
+    },
+    {
+      "id": "kp-6-2",
+      "chapter_id": 6,
+      "name": "6.2 电力储能系统的系统评估",
+      "category": "概念性"
+    }
+  ],
+  "edges": [
+    {
+      "from_id": "kp-1-1",
+      "to_id": "kp-1-2",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-1-1",
+      "to_id": "kp-1-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-2-1",
+      "to_id": "kp-2-2",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-2-1",
+      "to_id": "kp-2-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-2-2",
+      "to_id": "kp-2-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-3-1",
+      "to_id": "kp-3-2",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-3-2",
+      "to_id": "kp-3-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-3-2",
+      "to_id": "kp-3-4",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-3-2",
+      "to_id": "kp-3-5",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-4-1",
+      "to_id": "kp-4-2",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-4-1",
+      "to_id": "kp-4-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-4-2",
+      "to_id": "kp-4-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-5-1",
+      "to_id": "kp-5-2",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-5-2",
+      "to_id": "kp-5-3",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-5-2",
+      "to_id": "kp-5-4",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-5-3",
+      "to_id": "kp-5-4",
+      "relation_type": "prerequisite"
+    },
+    {
+      "from_id": "kp-6-1",
+      "to_id": "kp-6-2",
+      "relation_type": "prerequisite"
+    }
+  ],
+  "errors": [],
+  "sha256": "11fbe79b7cc83d4efd10daa58924ed2be6a8c7c34ddd2334228aeafe6bcee6a1"
+}

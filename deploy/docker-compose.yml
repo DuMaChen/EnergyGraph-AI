@@ -1,0 +1,259 @@
+services:
+  db:
+    image: mariadb:${MARIADB_VERSION}
+    restart: unless-stopped
+    # Keep the database below a bounded share of the 8 GB host while leaving
+    # enough headroom for Moodle and three concurrent Agent requests.
+    mem_limit: 2g
+    cpus: "1.00"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+      - --max-connections=80
+    environment:
+      TZ: ${TZ}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p$$MARIADB_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [app]
+
+  moodle:
+    build:
+      context: ./moodle
+      args:
+        MOODLE_BRANCH: ${MOODLE_BRANCH}
+    restart: unless-stopped
+    # PHP workers can briefly spike during course-page and PDF requests; the
+    # limit prevents a bad request burst from exhausting the whole host.
+    mem_limit: 1536m
+    cpus: "1.00"
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      MOODLE_DATAROOT: /var/www/moodledata
+      MOODLE_SEED_COURSE: ${MOODLE_SEED_COURSE:-true}
+      AGENT_BRIDGE_TOKEN: ${AGENT_BRIDGE_TOKEN:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - moodledata:/var/www/moodledata
+      - ../course-data/normalized:/opt/course-materials:ro
+    expose: ["80"]
+    healthcheck:
+      test: ["CMD-SHELL", "php -r '$$s=@fsockopen(\"127.0.0.1\",80,$$errno,$$errstr,2); exit($$s ? 0 : 1);'"]
+      interval: 20s
+      timeout: 10s
+      retries: 12
+    networks: [app]
+
+  agent-adapter:
+    build:
+      context: ..
+      dockerfile: agent-adapter/Dockerfile
+    restart: unless-stopped
+    # The Adapter is intentionally bounded independently so one user's
+    # upstream wait cannot consume resources reserved for Moodle and Caddy.
+    mem_limit: 768m
+    cpus: "0.75"
+    env_file: .env
+    environment:
+      MOODLE_SESSION_URL: http://moodle/local/course_agent/session.php
+      MOODLE_GRADE_SYNC_URL: http://moodle/local/course_agent/grade-sync.php
+      COURSE_MANIFEST: /app/course-data/manifest.json
+      COURSE_DB: /app/data/course.db
+      # Empty defaults keep the infrastructure stack deployable before the
+      # external account handoff; the preflight script remains mandatory for
+      # enabling real Workflow acceptance.
+      XINGCHEN_WORKFLOW_URL: ${XINGCHEN_WORKFLOW_URL:-}
+      XINGCHEN_FLOW_ID: ${XINGCHEN_FLOW_ID:-}
+      XINGCHEN_API_KEY: ${XINGCHEN_API_KEY:-}
+      XINGCHEN_API_SECRET: ${XINGCHEN_API_SECRET:-}
+      XINGCHEN_INPUT_NAME: ${XINGCHEN_INPUT_NAME:-AGENT_USER_INPUT}
+      XINGCHEN_TIMEOUT_SECONDS: ${XINGCHEN_TIMEOUT_SECONDS:-90}
+      AGENT_UID_SALT: ${AGENT_UID_SALT}
+      AGENT_BRIDGE_TOKEN: ${AGENT_BRIDGE_TOKEN:-}
+      AGENT_RATE_LIMIT: ${AGENT_RATE_LIMIT:-20}
+      AGENT_RATE_WINDOW_SECONDS: ${AGENT_RATE_WINDOW_SECONDS:-60}
+      AGENT_USER_CONCURRENCY: ${AGENT_USER_CONCURRENCY:-1}
+      AGENT_MAX_INPUT_CHARS: ${AGENT_MAX_INPUT_CHARS:-4000}
+      MOCK_AUTH_MODE: ${MOCK_AUTH_MODE:-false}
+      MOCK_WORKFLOW_MODE: ${MOCK_WORKFLOW_MODE:-false}
+      TZ: ${TZ}
+    volumes:
+      - ../course-data/normalized:/app/course-data:ro
+      - agent_data:/app/data
+    depends_on:
+      moodle:
+        condition: service_healthy
+    expose: ["8081"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8081/health'); assert r.status == 200"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [app]
+
+  flowise:
+    image: flowiseai/flowise:${FLOWISE_VERSION}
+    restart: unless-stopped
+    # Historical profile only; keep it bounded if an operator enables it.
+    mem_limit: 1536m
+    cpus: "0.75"
+    env_file: .env
+    environment:
+      PORT: 3000
+      DATABASE_PATH: /root/.flowise
+      LOG_PATH: /root/.flowise/logs
+      SECRETKEY_PATH: /root/.flowise
+      BLOB_STORAGE_PATH: /root/.flowise/storage
+      FLOWISE_USERNAME: ${FLOWISE_USERNAME}
+      FLOWISE_PASSWORD: ${FLOWISE_PASSWORD}
+      CORS_ORIGINS: ${FLOWISE_CORS_ORIGINS}
+      TZ: ${TZ}
+    volumes:
+      - flowise_data:/root/.flowise
+    expose: ["3000"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:3000/api/v1/ping >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+    networks: [app]
+    profiles: [historical]
+
+  qdrant:
+    image: qdrant/qdrant:${QDRANT_VERSION}
+    restart: unless-stopped
+    # Historical profile only; avoid allowing an accidental legacy start to
+    # compete indefinitely with the P0 Moodle/Adapter services.
+    mem_limit: 1024m
+    cpus: "0.50"
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
+      TZ: ${TZ}
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    expose: ["6333", "6334"]
+    healthcheck:
+      disable: true
+    networks: [app]
+    profiles: [historical]
+
+  model-gateway:
+    build:
+      context: ../model-gateway
+    restart: unless-stopped
+    # Historical profile only; the mock gateway does not need unbounded RAM.
+    mem_limit: 512m
+    cpus: "0.50"
+    env_file: .env
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      MOCK_MODE: ${MODEL_GATEWAY_MOCK_MODE}
+      MOCK_EMBEDDINGS: ${MOCK_EMBEDDINGS}
+      MOCK_EMBEDDING_DIMENSION: ${MOCK_EMBEDDING_DIMENSION}
+      TZ: ${TZ}
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; response=urllib.request.urlopen('http://127.0.0.1:8080/health'); assert response.status == 200"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [app]
+    profiles: [historical]
+
+  ingestion:
+    build:
+      context: ../ingestion
+    env_file: .env
+    # Import jobs are opt-in and are bounded so a large PDF batch cannot
+    # starve the online course services.
+    mem_limit: 1024m
+    cpus: "0.50"
+    environment:
+      COURSE_DATA_DIR: /data/raw
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
+      EMBEDDING_URL: http://model-gateway:8080/v1/embeddings
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL}
+      MOCK_EMBEDDINGS: ${MOCK_EMBEDDINGS}
+      MOCK_EMBEDDING_DIMENSION: ${MOCK_EMBEDDING_DIMENSION}
+      TZ: ${TZ}
+    depends_on:
+      qdrant:
+        condition: service_started
+      model-gateway:
+        condition: service_healthy
+    volumes:
+      - ../course-data:/data/raw:ro
+      - ingestion_reports:/data/reports
+    profiles: [ingest]
+    networks: [app]
+
+  caddy:
+    image: caddy:${CADDY_VERSION}
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: "0.25"
+    environment:
+      SITE_HOST: ${SITE_HOST}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      moodle:
+        condition: service_healthy
+      agent-adapter:
+        condition: service_healthy
+      agent-ui:
+        condition: service_healthy
+    networks: [app]
+
+  agent-ui:
+    build:
+      context: ../agent-ui
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: "0.25"
+    expose: ["80"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 8
+    networks: [app]
+
+volumes:
+  mariadb_data:
+  moodledata:
+  flowise_data:
+  qdrant_storage:
+  caddy_data:
+  caddy_config:
+  ingestion_reports:
+  agent_data:
+
+networks:
+  app:
+    driver: bridge

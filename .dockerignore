@@ -1,0 +1,20 @@
+# The adapter image only needs its own source tree. Keep credentials and
+# course material out of the Docker build context even when the build is
+# started from the repository root.
+.git
+.gitignore
+.env
+deploy/.env
+deploy/.env.*
+course-data/*
+!course-data/.gitkeep
+reports
+backups
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+.DS_Store
+参赛题目.docx
+*.xlsx
+*.zip
+*.pdf

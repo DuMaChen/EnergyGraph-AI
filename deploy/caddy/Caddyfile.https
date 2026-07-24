@@ -1,0 +1,22 @@
+{
+    admin off
+}
+
+{$SITE_HOST} {
+    encode gzip
+
+    @agent path /agent /agent/*
+    handle @agent {
+        reverse_proxy agent-ui:80
+    }
+
+    # Keep every Adapter route on the same origin in the HTTPS deployment.
+    @course_agent_api path /api/*
+    handle @course_agent_api {
+        reverse_proxy agent-adapter:8081
+    }
+
+    handle {
+        reverse_proxy moodle:80
+    }
+}

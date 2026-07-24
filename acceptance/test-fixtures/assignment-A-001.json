@@ -1,0 +1,10 @@
+{
+  "version": "assignment-A-001-v1",
+  "questions": [
+    {"id": "fixture-q-1", "type": "single_choice", "knowledge_point": "3.2", "max_score": 10, "answer": "A"},
+    {"id": "fixture-q-2", "type": "single_choice", "knowledge_point": "3.3", "max_score": 10, "answer": "B"},
+    {"id": "fixture-q-3", "type": "true_false", "knowledge_point": "3.4", "max_score": 10, "answer": true},
+    {"id": "fixture-q-4", "type": "short_answer", "knowledge_point": "3.2", "max_score": 20, "rubric": "列出主要组成并解释功能"},
+    {"id": "fixture-q-5", "type": "essay", "knowledge_point": "3.4", "max_score": 50, "rubric": "控制目标、并网约束、分析依据"}
+  ]
+}
