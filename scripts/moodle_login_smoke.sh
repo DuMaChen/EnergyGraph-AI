@@ -7,7 +7,7 @@ trap 'printf "MOODLE_LOGIN_SMOKE_ERROR line=%s\n" "$LINENO" >&2' ERR
 # jar and downloaded HTML are temporary and removed by the exit trap.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${1:-$ROOT_DIR/deploy/.env}"
-BASE_URL="${BASE_URL:-http://127.0.0.1}"
+BASE_URL="${BASE_URL:-https://energygraph.icu}"
 SITE_HOST="${SITE_HOST:-$(grep -E '^SITE_HOST=' "$ENV_FILE" | tail -1 | cut -d= -f2- || true)}"
 [[ -f "$ENV_FILE" ]] || { printf 'deploy/.env is missing\n' >&2; exit 1; }
 [[ -n "$SITE_HOST" ]] || { printf 'SITE_HOST is missing\n' >&2; exit 1; }

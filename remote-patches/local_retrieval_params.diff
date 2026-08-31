@@ -1,0 +1,28 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -531,10 +531,12 @@
+ def build_parameters(
+     identity: Identity,
+     mode: str,
+     question: str,
+     graph_context: str = "",
+     learning_profile: str = "",
+     scenario_context: str = "",
+     rubric: str = "",
+     resource_context: str = "",
++    local_context: str = "",
++    local_sources: list[dict[str, Any]] | None = None,
+ ) -> dict[str, Any]:
+@@ -554,2 +556,5 @@
+     context_hash = hashlib.sha256(json.dumps(context_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()[:24]
++    provider_question = question
++    if local_context:
++        provider_question = f"{local_context}\n\n用户问题：{question}\n请优先依据上述课程资料回答，并保留准确的来源文件、章节和页码标记。"
+     return {
+@@ -556,1 +561,1 @@
+-        os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"): question,
++        os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"): provider_question,
+@@ -569,1 +574,3 @@
+         "RESOURCE_CONTEXT": resource_context,
++        "AGENT_ORIGINAL_QUESTION": question,
++        "LOCAL_RETRIEVAL_SOURCES": local_sources or [],

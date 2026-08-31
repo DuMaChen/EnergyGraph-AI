@@ -1,0 +1,10 @@
+--- deploy/docker-compose.yml
++++ deploy/docker-compose.yml
+@@ -78,1 +78,2 @@
+       COURSE_MANIFEST: /app/course-data/manifest.json
++      COURSE_SOURCE_DIR: /app/course-sources
+@@ -98,3 +99,4 @@
+     volumes:
+       - ../course-data/normalized:/app/course-data:ro
++      - ../course-data/xingchen-sources:/app/course-sources:ro
+       - agent_data:/app/data

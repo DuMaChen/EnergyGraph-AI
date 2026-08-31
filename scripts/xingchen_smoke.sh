@@ -18,7 +18,7 @@ success=0
 # Check the provider's ordinary JSON contract separately from the five-call
 # streaming smoke. This catches a workflow that is published but misconfigured
 # for one response mode before the UI is tested.
-body="$(python3 -c 'import json,os; print(json.dumps({"flow_id":os.environ["XINGCHEN_FLOW_ID"],"uid":"acceptance-json-user","parameters":{os.environ["XINGCHEN_INPUT_NAME"]:"请回答：什么是储能变流器？","AGENT_MODE":"qa"},"stream":False},ensure_ascii=False))')"
+body="$(python3 -c 'import json,os; print(json.dumps({"flow_id":os.environ["XINGCHEN_FLOW_ID"],"uid":"acceptance-json-user","parameters":{os.environ["XINGCHEN_INPUT_NAME"]:"请回答：什么是储能变流器？"},"stream":False},ensure_ascii=False))')"
 status="$(curl -sS --max-time "${XINGCHEN_TIMEOUT_SECONDS:-90}" \
   -H "Authorization: Bearer ${XINGCHEN_API_KEY}:${XINGCHEN_API_SECRET}" \
   -H 'Content-Type: application/json' -d "$body" -o "$tmp" -w '%{http_code}' "$XINGCHEN_WORKFLOW_URL")" || status=000
@@ -48,7 +48,7 @@ then
   exit 1
 fi
 for attempt in 1 2 3 4 5; do
-  body="$(python3 -c 'import json,os; print(json.dumps({"flow_id":os.environ["XINGCHEN_FLOW_ID"],"uid":"acceptance-smoke-user","parameters":{os.environ["XINGCHEN_INPUT_NAME"]:"请回答：什么是储能变流器？","AGENT_MODE":"qa"},"stream":True},ensure_ascii=False))')"
+  body="$(python3 -c 'import json,os; print(json.dumps({"flow_id":os.environ["XINGCHEN_FLOW_ID"],"uid":"acceptance-smoke-user","parameters":{os.environ["XINGCHEN_INPUT_NAME"]:"请回答：什么是储能变流器？"},"stream":True},ensure_ascii=False))')"
   status="$(curl -sS --no-buffer --max-time "${XINGCHEN_TIMEOUT_SECONDS:-90}" \
     -H "Authorization: Bearer ${XINGCHEN_API_KEY}:${XINGCHEN_API_SECRET}" \
     -H 'Content-Type: application/json' -d "$body" -o "$tmp" -w '%{http_code}' "$XINGCHEN_WORKFLOW_URL")" || status=000

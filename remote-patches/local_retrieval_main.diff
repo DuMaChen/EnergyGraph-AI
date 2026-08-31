@@ -1,0 +1,66 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -23,3 +23,4 @@
+ from fastapi.responses import JSONResponse, StreamingResponse
+ 
+ from .course_store import AssignmentDraftConflict, CHECKIN_OPTION, ExamDraftConflict, GLOBAL_SEARCH_KINDS, QUICK_RESPONSE_OPTION, QuestionVersionConflict, ResourceNoteConflict, ResourceProgressConflict, store
++from .course_retrieval import CourseRetriever
+@@ -381,1 +381,10 @@
+ MANIFEST = load_manifest()
++
++COURSE_RETRIEVER = CourseRetriever(os.getenv("COURSE_SOURCE_DIR", "/app/course-sources"))
++
++def local_course_retrieval(question: str, version: dict[str, Any] | None = None) -> tuple[str, list[dict[str, object]]]:
++    result = COURSE_RETRIEVER.search(question)
++    if not result.chunks:
++        return "", []
++    version_name = str((version or {}).get("version_name") or MANIFEST.get("source_archive", "course-local"))
++    version_id = str((version or {}).get("id") or "local-manifest")
++    return result.prompt_context, result.sources(version_name, version_id)
+@@ -526,4 +526,6 @@
+     rubric: str = "",
+     resource_context: str = "",
++    local_context: str = "",
++    local_sources: list[dict[str, Any]] | None = None,
+ ) -> dict[str, Any]:
+@@ -543,2 +545,5 @@
+     context_hash = hashlib.sha256(json.dumps(context_payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()[:24]
++    provider_question = question
++    if local_context:
++        provider_question = f"{local_context}\n\n用户问题：{question}\n请优先依据上述课程资料回答，并保留准确的来源文件、章节和页码标记。"
+     return {
+@@ -546,1 +551,1 @@
+-        os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"): question,
++        os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"): provider_question,
+@@ -558,1 +563,3 @@
+         "RESOURCE_CONTEXT": resource_context,
++        "AGENT_ORIGINAL_QUESTION": question,
++        "LOCAL_RETRIEVAL_SOURCES": local_sources or [],
+@@ -652,1 +659,1 @@
+-            str(parameters.get(os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"), "")),
++            str(parameters.get("AGENT_ORIGINAL_QUESTION") or parameters.get(os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"), "")),
+@@ -660,1 +667,2 @@
+     published = store.published_kb(identity.course_id)
++    retrieval_sources = [dict(source) for source in parameters.get("LOCAL_RETRIEVAL_SOURCES", []) if isinstance(source, dict)]
+@@ -722,1 +730,7 @@
+-                if not emitted_source_ids:
++                for source in retrieval_sources:
++                    source_id = str(source.get("source_id") or "")
++                    if not source_id or source_id in emitted_source_ids:
++                        continue
++                    emitted_source_ids.add(source_id)
++                    yield {"event": "source", "data": {**source, "request_id": request_id}}
++                if not emitted_source_ids:
+@@ -1700,1 +1714,4 @@
+-        parameters = build_parameters(identity, "qa", str(case["question"]))
++        retrieval_context, retrieval_sources = local_course_retrieval(str(case["question"]), version)
++        parameters = build_parameters(
++            identity, "qa", str(case["question"]),
++            local_context=retrieval_context, local_sources=retrieval_sources,
++        )
+@@ -3553,1 +3570,3 @@
+-        parameters = build_parameters(identity, mode, question.strip(), graph_context, profile_context, scenario_context, resource_context=resource_context)
++        local_context, local_sources = local_course_retrieval(question.strip(), store.published_kb(identity.course_id))
++        parameters = build_parameters(
++            identity, mode, question.strip(), graph_context, profile_context, scenario_context, resource_context=resource_context, local_context=local_context, local_sources=local_sources,
++        )

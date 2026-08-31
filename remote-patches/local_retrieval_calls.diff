@@ -1,0 +1,15 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -1725,1 +1725,5 @@
+-        parameters = build_parameters(identity, "qa", str(case["question"]))
++        retrieval_context, retrieval_sources = local_course_retrieval(str(case["question"]), version)
++        parameters = build_parameters(
++            identity, "qa", str(case["question"]),
++            local_context=retrieval_context, local_sources=retrieval_sources,
++        )
+@@ -3578,1 +3582,3 @@
+-        parameters = build_parameters(identity, mode, question.strip(), graph_context, profile_context, scenario_context, resource_context=resource_context)
++        local_context, local_sources = local_course_retrieval(question.strip(), store.published_kb(identity.course_id))
++        parameters = build_parameters(
++            identity, mode, question.strip(), graph_context, profile_context, scenario_context, resource_context=resource_context, local_context=local_context, local_sources=local_sources,
++        )

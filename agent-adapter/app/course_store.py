@@ -145,6 +145,7 @@ class CourseStore:
                     assignment_id TEXT NOT NULL REFERENCES assignments(id),
                     user_uid TEXT NOT NULL,
                     moodle_user_id INTEGER,
+                    student_name TEXT DEFAULT '',
                     answers_json TEXT NOT NULL,
                     attempt INTEGER NOT NULL DEFAULT 1,
                     status TEXT NOT NULL DEFAULT 'submitted',
@@ -267,6 +268,8 @@ class CourseStore:
             submission_columns = {row["name"] for row in db.execute("PRAGMA table_info(submissions)")}
             if "moodle_user_id" not in submission_columns:
                 db.execute("ALTER TABLE submissions ADD COLUMN moodle_user_id INTEGER")
+            if "student_name" not in submission_columns:
+                db.execute("ALTER TABLE submissions ADD COLUMN student_name TEXT DEFAULT ''")
             # Scenario turns were initially input-only rows. Keep this
             # migration additive so existing demo volumes retain their history
             # while new calls can persist validated Workflow evidence.
@@ -381,6 +384,15 @@ class CourseStore:
     def path(self, start_id: str, end_id: str, max_depth: int = 8) -> list[str] | None:
         """Find a bounded prerequisite path without allowing unbounded graph walks."""
         with self.connect() as db:
+            valid_nodes = db.execute(
+                "SELECT id FROM knowledge_nodes WHERE id IN (?, ?)",
+                (start_id, end_id),
+            ).fetchall()
+            # A path from a node to itself is a valid zero-hop path. SQLite
+            # returns one row for IN (?, ?) when both parameters are equal;
+            # requiring two rows incorrectly turns that request into 404.
+            if not valid_nodes or (start_id != end_id and len(valid_nodes) != 2):
+                return None
             queue: list[tuple[str, list[str]]] = [(start_id, [start_id])]
             visited = {start_id}
             while queue:
@@ -411,6 +423,27 @@ class CourseStore:
         with self.connect() as db:
             row = db.execute("SELECT r.* FROM resources r JOIN chapters c ON c.id=r.chapter_id WHERE r.id=? AND c.course_id=1", (resource_id,)).fetchone()
             return dict(row) if row else None
+
+    def add_resource(
+        self,
+        chapter_id: int,
+        source_file: str,
+        normalized_file: str,
+        node_id: str | None = None,
+        page_start: int = 1,
+        page_end: int | None = None,
+        sha256: str = "",
+        version: str = "local-v1",
+    ) -> dict[str, Any]:
+        res_id = f"r-{uuid.uuid4().hex[:12]}"
+        with self._lock, self.connect() as db:
+            db.execute(
+                "INSERT INTO resources(id, chapter_id, node_id, source_file, normalized_file, page_start, page_end, sha256, version) VALUES(?,?,?,?,?,?,?,?,?)",
+                (res_id, chapter_id, node_id, source_file, normalized_file, page_start, page_end, sha256, version),
+            )
+            db.commit()
+            row = db.execute("SELECT * FROM resources WHERE id=?", (res_id,)).fetchone()
+            return dict(row) if row else {}
 
     def kb_versions(self) -> list[dict[str, Any]]:
         with self.connect() as db:
@@ -875,7 +908,7 @@ class CourseStore:
         """Return course-scoped submissions for staff review, never for students."""
         with self.connect() as db:
             rows = db.execute(
-                "SELECT s.id,s.assignment_id,s.user_uid,s.attempt,s.status,s.created_at,s.answers_json "
+                "SELECT s.id,s.assignment_id,s.user_uid,s.moodle_user_id,COALESCE(s.student_name, '') student_name,s.attempt,s.status,s.created_at,s.answers_json "
                 "FROM submissions s JOIN assignments a ON a.id=s.assignment_id "
                 "WHERE s.assignment_id=? AND a.course_id=1 ORDER BY s.created_at,s.id",
                 (assignment_id,),
@@ -905,38 +938,48 @@ class CourseStore:
                 return None
             result = dict(row)
             question_ids = json.loads(result.pop("question_ids_json"))
-            result["question_ids"] = question_ids
+            my_submissions = []
+            if user_uid:
+                my_submissions = self._student_submission_results(db, assignment_id, user_uid)
+                if published_only:
+                    result["my_submissions"] = my_submissions
+
+            has_submitted = bool(my_submissions)
             questions = []
             for question_id in question_ids:
                 columns = "id,course_id,chapter_id,node_id,question_type,prompt,options_json,max_score,status,version"
-                if not published_only:
+                if not published_only or has_submitted:
                     columns += ",answer_json,rubric"
                 question = db.execute(f"SELECT {columns} FROM questions WHERE id=? AND course_id=1", (question_id,)).fetchone()
                 if question:
                     item = dict(question)
                     if item.get("options_json"):
                         item["options"] = json.loads(item.pop("options_json"))
+                    if "answer_json" in item:
+                        item["answer"] = json.loads(item.pop("answer_json") or "null")
                     questions.append(item)
             result["questions"] = questions
-            if user_uid and published_only:
-                result["my_submissions"] = self._student_submission_results(db, assignment_id, user_uid)
             return result
 
     @staticmethod
     def _student_submission_results(db: sqlite3.Connection, assignment_id: str, user_uid: str) -> list[dict[str, Any]]:
-        """Return only a student's own score/feedback, never answer keys or rubrics."""
+        """Return student's own submissions with answers and graded feedback."""
         assignment = db.execute("SELECT question_ids_json FROM assignments WHERE id=? AND course_id=1", (assignment_id,)).fetchone()
         question_ids = json.loads(assignment["question_ids_json"]) if assignment else []
         placeholders = ",".join("?" for _ in question_ids) or "''"
         full_max = float(db.execute(f"SELECT COALESCE(SUM(max_score),0) FROM questions WHERE course_id=1 AND id IN ({placeholders})", question_ids).fetchone()[0])
         rows = db.execute(
-            "SELECT id,attempt,status,created_at FROM submissions "
+            "SELECT id,attempt,status,created_at,answers_json FROM submissions "
             "WHERE assignment_id=? AND user_uid=? ORDER BY attempt",
             (assignment_id, user_uid),
         ).fetchall()
         results: list[dict[str, Any]] = []
         for row in rows:
             item = dict(row)
+            if "answers_json" in item and item["answers_json"]:
+                item["answers"] = json.loads(item.pop("answers_json"))
+            else:
+                item["answers"] = {}
             grades = db.execute(
                 "SELECT question_id,score,max_score,feedback,source FROM grades "
                 "WHERE submission_id=? ORDER BY question_id",
@@ -970,7 +1013,7 @@ class CourseStore:
             item["question_ids"] = json.loads(item.pop("question_ids_json"))
             return item
 
-    def submit(self, uid: str, assignment_id: str, answers: dict[str, Any], attempt: int, moodle_user_id: int | None = None) -> dict[str, Any]:
+    def submit(self, uid: str, assignment_id: str, answers: dict[str, Any], attempt: int, moodle_user_id: int | None = None, student_name: str = "") -> dict[str, Any]:
         submission_id = "sub-" + uuid.uuid4().hex
         with self._lock, self.connect() as db:
             assignment = db.execute("SELECT id,due_at,allow_attempts FROM assignments WHERE id=? AND course_id=1 AND status='published'", (assignment_id,)).fetchone()
@@ -984,7 +1027,10 @@ class CourseStore:
             due_at = parse_due_at(assignment["due_at"])
             if due_at and datetime.now(timezone.utc) > due_at:
                 raise ValueError("deadline_passed")
-            db.execute("INSERT INTO submissions(id,assignment_id,user_uid,moodle_user_id,answers_json,attempt) VALUES(?,?,?,?,?,?)", (submission_id, assignment_id, uid, moodle_user_id, json.dumps(answers, ensure_ascii=False), attempt))
+            db.execute(
+                "INSERT INTO submissions(id,assignment_id,user_uid,moodle_user_id,student_name,answers_json,attempt) VALUES(?,?,?,?,?,?,?)",
+                (submission_id, assignment_id, uid, moodle_user_id, student_name, json.dumps(answers, ensure_ascii=False), attempt),
+            )
             db.commit()
         return {"id": submission_id, "assignment_id": assignment_id, "attempt": attempt, "status": "submitted"}
 
@@ -1046,6 +1092,14 @@ class CourseStore:
                     total += score
                 else:
                     pending += 1
+                    existing = db.execute("SELECT id, score FROM grades WHERE submission_id=? AND question_id=?", (submission_id, question_id)).fetchone()
+                    if not existing:
+                        db.execute(
+                            "INSERT INTO grades(id,submission_id,question_id,score,max_score,feedback,source) VALUES(?,?,?,?,?,?,?)",
+                            ("g-" + uuid.uuid4().hex, submission_id, question_id, 0.0, question["max_score"], "主观题待教师复核或智能初评", "subjective_pending"),
+                        )
+                    else:
+                        total += float(existing["score"] or 0)
             db.commit()
             grade_rows = [dict(row) for row in db.execute("SELECT * FROM grades WHERE submission_id=? ORDER BY question_id", (submission_id,))]
             return {

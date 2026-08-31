@@ -1,0 +1,15 @@
+--- scripts/kb_release.py
++++ scripts/kb_release.py
+@@ -48,3 +48,3 @@
+-    keys = ("SITE_HOST", "MOODLE_ADMIN_USER", "MOODLE_ADMIN_PASSWORD",
++    keys = ("SITE_HOST", "MOODLE_WWWROOT", "MOODLE_ADMIN_USER", "MOODLE_ADMIN_PASSWORD",
+             "XINGCHEN_WORKFLOW_URL", "XINGCHEN_FLOW_ID", "XINGCHEN_API_KEY",
+             "XINGCHEN_API_SECRET", "XINGCHEN_INPUT_NAME", "COURSE_ID")
+@@ -183,4 +183,6 @@
+     root = Path(args.root).expanduser().resolve()
+     env = load_env(str(root / args.env_file))
+     site = env["SITE_HOST"] or "139.196.45.2"
+-    base = f"http://{site}"
++    base = env["MOODLE_WWWROOT"].rstrip("/") or f"https://{site}"
++    if not base.startswith(("http://", "https://")):
++        base = f"https://{base}"

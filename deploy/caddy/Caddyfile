@@ -21,7 +21,20 @@ http://{$SITE_HOST} {
         reverse_proxy agent-adapter:8081
     }
 
+    # Intercept and redirect legacy Moodle user profile pages to modern learning workspace
+    @legacy_user_profile path /user/view.php /user/view.php* /user/profile.php /user/profile.php*
+    handle @legacy_user_profile {
+        redir /agent/ temporary
+    }
+
+    # Dedicated single-course workspace routing: visiting root or Moodle course catalogs directly lands on /agent/
+    @single_course_home path / /index.php /my /my/ /my/index.php /my/courses.php /course/index.php
+    handle @single_course_home {
+        redir /agent/ temporary
+    }
+
     handle {
         reverse_proxy moodle:80
     }
 }
+

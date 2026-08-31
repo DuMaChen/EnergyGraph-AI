@@ -6,7 +6,7 @@ set -Eeuo pipefail
 # macOS may add `._*` sidecar files during archive/copy operations; they are
 # metadata, not source files, so the syntax audit deliberately excludes them.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SERVER="${SERVER:-root@168.144.36.82}"
+SERVER="${SERVER:-root@139.196.45.2}"
 blockers=0
 
 # The same script runs locally and on the deployed host.  The remote mode

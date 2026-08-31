@@ -155,14 +155,6 @@ function add_label_once(stdClass $course, int $sectionnumber, string $idnumber, 
     add_moduleinfo($info, $course);
 }
 
-add_label_once(
-    $course,
-    0,
-    'storage-agent-entry',
-    '课程 Agent',
-    '<div class="alert alert-info"><strong>课程 Agent</strong><br>用于课程知识问答、学习路径和教师备课。生成内容带有 AI 标识，专业结论请核验引用来源。<br><iframe title="电力系统储能技术 Agent" src="/agent/" style="width:100%;min-height:680px;border:1px solid #d7e0e3;border-radius:6px;"></iframe></div>'
-);
-
 $manifestpath = '/opt/course-materials/manifest.json';
 $manifest = file_exists($manifestpath) ? json_decode(file_get_contents($manifestpath), true) : null;
 $materialroot = '/opt/course-materials';

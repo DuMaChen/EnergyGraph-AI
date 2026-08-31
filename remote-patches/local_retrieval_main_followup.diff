@@ -1,0 +1,9 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -25,1 +25,2 @@
+ from .course_store import AssignmentDraftConflict, CHECKIN_OPTION, ExamDraftConflict, GLOBAL_SEARCH_KINDS, QUICK_RESPONSE_OPTION, QuestionVersionConflict, ResourceNoteConflict, ResourceProgressConflict, store
++from .course_retrieval import CourseRetriever
+@@ -390,2 +390,3 @@
+     version_id = str((version or {}).get("id") or "local-manifest")
++    return result.prompt_context, result.sources(version_name, version_id)
+ 

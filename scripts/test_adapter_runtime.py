@@ -54,8 +54,10 @@ def main() -> None:
             json={"question": "请解释我的学习状态。"},
         )
         assert diagnosis.status_code == 200
-        assert diagnosis.json()["data"]["ai_generated"] is True
-        assert diagnosis.json()["data"]["sources"]
+        diagnosis_data = diagnosis.json()["data"]
+        assert diagnosis_data["ai_generated"] is False
+        assert diagnosis_data["sources"] == []
+        assert "数据不足" in diagnosis_data["ai_explanation"]
 
         chat = client.post(
             "/api/course-agent/chat",

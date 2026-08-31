@@ -22,6 +22,9 @@ $config = "<?php\nunset(\$CFG);\n\$CFG = new stdClass();\nglobal \$CFG;\n";
 foreach ($values as $key => $value) {
     $config .= "\$CFG->{$key} = " . var_export($value, true) . ";\n";
 }
+if (strpos($values["wwwroot"], "https://") === 0) {
+    $config .= "\$CFG->sslproxy = true;\n";
+}
 $config .= "\$CFG->admin = " . var_export(getenv("MOODLE_ADMIN_USER") ?: "admin", true) . ";\n";
 $config .= "\$CFG->directorypermissions = 02770;\n\nrequire_once(__DIR__ . \"/lib/setup.php\");\n";
 file_put_contents("/var/www/html/config.php", $config, LOCK_EX);
@@ -59,6 +62,12 @@ if [[ ! -f "$DATA_ROOT/.moodle-installed" ]]; then
     chown www-data:www-data "$DATA_ROOT/.moodle-installed"
 fi
 
+# Install/upgrade bundled local plugins before the first web request. This is
+# what registers the new-user onboarding observer on an existing volume.
+if [[ "${MOODLE_RUN_UPGRADE:-true}" == "true" ]]; then
+    php admin/cli/upgrade.php --non-interactive --lang=zh_cn
+fi
+
 if [[ "${MOODLE_SEED_COURSE:-true}" == "true" ]]; then
     # Some CLI-first Moodle installs leave MUC with empty stores/locks. The
     # official writer restores the default persistent file/session caches.
@@ -72,5 +81,45 @@ if [[ "${MOODLE_SEED_COURSE:-true}" == "true" ]]; then
     '
     php /usr/local/bin/moodle-seed-course.php
 fi
+
+# Configure SMTP and Email Registration idempotently from environment variables
+php -r '
+    define("CLI_SCRIPT", true);
+    require "/var/www/html/config.php";
+    require_once($CFG->libdir . "/clilib.php");
+
+    $smtphost = getenv("MOODLE_SMTP_HOST");
+    if (!empty($smtphost)) {
+        set_config("smtphosts", $smtphost);
+        set_config("smtpuser", getenv("MOODLE_SMTP_USER") ?: "");
+        set_config("smtppass", getenv("MOODLE_SMTP_PASS") ?: "");
+        set_config("smtpsecure", getenv("MOODLE_SMTP_SECURE") ?: "ssl");
+        set_config("smtpauthtype", getenv("MOODLE_SMTP_AUTHTYPE") ?: "LOGIN");
+        set_config("noreplyaddress", getenv("MOODLE_NOREPLY_ADDRESS") ?: (getenv("MOODLE_SMTP_USER") ?: "noreply@example.com"));
+        set_config("emailonlyfromnoreplyaddress", 1);
+        mtrace("Configured Moodle SMTP: host=" . $smtphost . ", user=" . (getenv("MOODLE_SMTP_USER") ?: "none"));
+    }
+
+    $supportemail = getenv("MOODLE_SUPPORT_EMAIL") ?: getenv("MOODLE_SMTP_USER");
+    if (!empty($supportemail)) {
+        set_config("supportemail", $supportemail);
+        set_config("supportname", getenv("MOODLE_SUPPORT_NAME") ?: "电力系统储能技术教学团队");
+    }
+
+    if (getenv("MOODLE_EMAIL_ENABLE_REGISTRATION") === "true") {
+        $auths = empty($CFG->auth) ? [] : explode(",", $CFG->auth);
+        if (!in_array("email", $auths, true)) {
+            $auths[] = "email";
+            set_config("auth", implode(",", $auths));
+        }
+        set_config("registerauth", "email");
+        mtrace("Configured Moodle email-based self-registration (auth_email enabled)");
+    }
+'
+
+# The upgrade and seed CLIs intentionally run before Apache and therefore as
+# root. Restore Moodle's data-root ownership so the first normal web request
+# cannot fail while creating cache/session directories.
+chown -R www-data:www-data "$DATA_ROOT"
 
 exec "$@"

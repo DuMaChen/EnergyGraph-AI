@@ -1,0 +1,7 @@
+--- scripts/kb_release.py
++++ scripts/kb_release.py
+@@ -174,1 +174,3 @@
+-    base = f"http://{site}"
++    base = env["MOODLE_WWWROOT"].rstrip("/") or f"https://{site}"
++    if not base.startswith(("http://", "https://")):
++        base = f"https://{base}"

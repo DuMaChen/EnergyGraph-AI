@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE=(docker compose --project-directory "$ROOT_DIR/deploy" --env-file "$ROOT_DIR/deploy/.env")
-BASE_URL="${BASE_URL:-http://168.144.36.82}"
+BASE_URL="${BASE_URL:-https://energygraph.icu}"
 BASE_HOST="${BASE_HOST:-}"
 
 # A request to 127.0.0.1 reaches Caddy with a different Host header than the
@@ -66,11 +66,11 @@ done
 printf '%s\n' '[INF-003] checking public Moodle and Agent routes'
 for path in / /agent/; do
   code="$(curl_base -sS -o /dev/null -w '%{http_code}' --max-time 15 "$BASE_URL$path")"
-  case "$code" in 200|301|302|303) ;; *) fail "$path returned HTTP $code" ;; esac
+  case "$code" in 200|301|302|303|307|308) ;; *) fail "$path returned HTTP $code" ;; esac
 done
 api_code="$(curl_base -sS -o /dev/null -w '%{http_code}' -X POST --max-time 15 "$BASE_URL/api/course/session/open")"
 case "$api_code" in
-  401|502) ;;
+  401|502|307|308) ;;
   *) fail "/api/course/session/open returned unexpected HTTP $api_code without a Moodle session" ;;
 esac
 

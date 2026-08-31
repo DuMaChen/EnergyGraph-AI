@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # Stream the project to the server without ever copying deploy/.env. The
 # server's existing .env contains its own generated secrets and must remain
 # server-side state.
-SERVER="${SERVER:-root@168.144.36.82}"
+SERVER="${SERVER:-root@139.196.45.2}"
 REMOTE_ROOT="${REMOTE_ROOT:-/opt/jbgs-course-agent}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -35,5 +35,5 @@ ssh "$SERVER" "docker compose --project-directory '$REMOTE_ROOT/deploy' --env-fi
 # restart it before validating the newly synchronized same-origin routes.
 ssh "$SERVER" "docker compose --project-directory '$REMOTE_ROOT/deploy' --env-file '$REMOTE_ROOT/deploy/.env' restart caddy"
 ssh "$SERVER" "docker compose --project-directory '$REMOTE_ROOT/deploy' --env-file '$REMOTE_ROOT/deploy/.env' ps"
-ssh "$SERVER" "cd '$REMOTE_ROOT' && BASE_URL=http://127.0.0.1 BASE_HOST=\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) bash scripts/smoke_acceptance.sh"
-ssh "$SERVER" "cd '$REMOTE_ROOT' && BASE_URL=http://127.0.0.1 SITE_HOST=\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) bash scripts/moodle_login_smoke.sh '$REMOTE_ROOT/deploy/.env'"
+ssh "$SERVER" "cd '$REMOTE_ROOT' && BASE_URL=https://\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) SITE_HOST=\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) bash scripts/smoke_acceptance.sh"
+ssh "$SERVER" "cd '$REMOTE_ROOT' && BASE_URL=https://\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) SITE_HOST=\$(grep -E '^SITE_HOST=' '$REMOTE_ROOT/deploy/.env' | tail -1 | cut -d= -f2-) bash scripts/moodle_login_smoke.sh '$REMOTE_ROOT/deploy/.env'"

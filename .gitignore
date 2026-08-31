@@ -1,16 +1,25 @@
-.env
-deploy/.env
+# Environment and secret configuration
+.env*
+deploy/.env*
+!deploy/.env.example
+
+# Course raw materials and normalized PDF binaries
 course-data/*
 !course-data/.gitkeep
 !course-data/normalized/
 course-data/normalized/*.pdf
 !course-data/normalized/manifest.json
 !course-data/normalized/graph-baseline.json
+
+# Caches and runtime artifacts
 reports/
+output/
+tmp/
 __pycache__/
 .pytest_cache/
 *.pyc
 .DS_Store
+scripts/sample_pdf_b64.txt
 
 # Original teaching files and registration material stay out of the source
 # repository; the normalized manifest and source metadata are already tracked
@@ -23,3 +32,4 @@ __pycache__/
 # Server-only backup and release state must never be pushed to GitHub.
 /backups/
 /05-作品代码/*.tar.gz
+

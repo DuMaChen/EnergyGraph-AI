@@ -40,7 +40,8 @@ archive_volume() {
   docker run --rm \
     -v "$name:/source:ro" \
     -v "$DEST:/backup" \
-    alpine:3.20 tar czf "/backup/$output" -C /source .
+    alpine:3.20 tar czf "/backup/$output" \
+      --exclude='.env' --exclude='*.key' --exclude='*.secret' -C /source .
   chmod 600 "$DEST/$output"
 }
 
