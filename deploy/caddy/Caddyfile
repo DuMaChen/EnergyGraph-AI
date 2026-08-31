@@ -1,9 +1,9 @@
 {
-    auto_https off
     admin off
+    email 2713215449@qq.com
 }
 
-http://{$SITE_HOST} {
+{$SITE_HOST} {
     encode gzip
 
     @agent path /agent /agent/*
