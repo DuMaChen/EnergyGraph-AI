@@ -5,9 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>电力系统储能技术 - 课程学习空间</title>
   
-  <!-- Markdown & MathJax support -->
+  <!-- Markdown, KaTeX & MathJax Math Formula Support (Local + CDN Fallbacks) -->
+  <link rel="stylesheet" href="/agent/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="/agent/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="/agent/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="/agent/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
   <style>
@@ -31,6 +49,37 @@
       --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* LaTeX & KaTeX Math Typography */
+    .katex-display {
+      margin: 0.85em 0 !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      padding: 6px 0 !important;
+      text-align: center;
+    }
+    .katex {
+      font-size: 1.06em !important;
+      text-rendering: auto !important;
+    }
+    .msg-bubble .katex-display, .msg-bubble .katex-display-math {
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 8px 12px !important;
+      border-left: 3px solid var(--brand-green);
+      margin: 0.75rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+    .msg-bubble .katex-inline-math {
+      display: inline-block;
+      vertical-align: baseline;
+      margin: 0 2px;
+      padding: 1px 3px;
+    }
+    .msg-bubble .katex {
+      color: #0f172a;
     }
     
     * {
@@ -7650,17 +7699,115 @@ JSON 输出格式如下：
       openPdfReaderByFilename(filename, page || 1);
     }
 
-    // Safe Markdown Parser with automatic whitespace and bold token repair
+    function renderMathTokenToHtml(math, displayMode) {
+      if (typeof katex !== "undefined" && katex.renderToString) {
+        try {
+          return katex.renderToString(math, {
+            displayMode: !!displayMode,
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn("KaTeX render error:", e);
+        }
+      }
+      if (displayMode) {
+        return `<div class="katex-display-math" data-tex="${encodeURIComponent(math)}">$$${math}$$</div>`;
+      } else {
+        return `<span class="katex-inline-math" data-tex="${encodeURIComponent(math)}">\\(${math}\\)</span>`;
+      }
+    }
+
+    // Safe Markdown & LaTeX Math Parser (KaTeX / MathJax / Fallback Engine)
     function renderSafeMarkdown(rawMarkdown) {
       if (!rawMarkdown) return "";
+
+      let mathTokens = [];
+      let tokenIdx = 0;
+
+      function saveMathToken(math, displayMode) {
+        const key = `@@@MATH_TOKEN_${tokenIdx++}@@@`;
+        mathTokens.push({ key, math: math.trim(), displayMode });
+        return key;
+      }
+
+      let text = rawMarkdown;
+
+      // 1. Standard block math: $$...$$ or \\[...\\]
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, (m, c) => "\n\n" + saveMathToken(c, true) + "\n\n");
+      text = text.replace(/\\\[([\s\S]+?)\\\]/g, (m, c) => "\n\n" + saveMathToken(c, true) + "\n\n");
+
+      // 2. LaTeX environments: \\begin{equation}...\\end{equation}
+      text = text.replace(/\\begin\{(equation|align|aligned|gather|matrix|bmatrix|pmatrix)\*?\}([\s\S]+?)\\end\{\1\*?\}/g, (m) => "\n\n" + saveMathToken(m, true) + "\n\n");
+
+      // 3. Bracket display math: [ ... ] (not followed by (link)) containing LaTeX indicators
+      const isLatex = (str) => /\\[a-zA-Z]+|[_^]\{|\b[a-zA-Z]_[a-zA-Z0-9]/.test(str);
+      text = text.replace(/\[\s*([^\]\n]+(?:[\r\n]+[^\]\n]+)*?)\s*\](?!\()/g, (m, c) => {
+        if (isLatex(c)) {
+          return "\n\n" + saveMathToken(c, true) + "\n\n";
+        }
+        return m;
+      });
+
+      // 4. Standard inline math: \\(...\\)
+      text = text.replace(/\\\(([\s\S]+?)\\\)/g, (m, c) => saveMathToken(c, false));
+
+      // 5. Standard $...$ inline math (single dollar)
+      text = text.replace(/(^|[^\$])\$([^\$\n]+?)\$(?!\$)/g, (m, prefix, c) => {
+        if (c.trim().length > 0) {
+          return prefix + saveMathToken(c, false);
+        }
+        return m;
+      });
+
+      // 6. Parentheses with LaTeX indicators: ( E_{\\text{stor}} )
+      text = text.replace(/\(\s*([^\)\n]+?)\s*\)/g, (m, c) => {
+        if (isLatex(c)) {
+          return saveMathToken(c, false);
+        }
+        return m;
+      });
+
       // Fix broken markdown bold syntax like ** text ** or ** text** or ** 重点强化**
-      let sanitizedMd = rawMarkdown
+      text = text
         .replace(/\*\*\s+([^\*\n]+?)\s+\*\*/g, "**$1**")
         .replace(/\*\*\s+([^\*\n]+?)\*\*/g, "**$1**")
         .replace(/\*\*([^\*\n]+?)\s+\*\*/g, "**$1**")
         .replace(/^(\s*)[-*+•]\s+(\d+[\.、]\s*)/gm, "$1$2");
-      let parsed = DOMPurify.sanitize(marked.parse(sanitizedMd));
+
+      let parsed = DOMPurify.sanitize(marked.parse(text), {
+        ADD_TAGS: ['math', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'span', 'svg', 'path', 'annotation', 'mspace', 'msqrt', 'mtable', 'mtr', 'mtd', 'div', 'button'],
+        ADD_ATTR: ['display', 'xmlns', 'viewBox', 'd', 'aria-hidden', 'data-tex', 'data-math', 'onclick', 'title', 'class']
+      });
+
+      // Replace math tokens back with KaTeX rendered HTML or MathJax container
+      parsed = parsed.replace(/@@@MATH_TOKEN_(\d+)@@@/g, (match, idx) => {
+        const t = mathTokens[parseInt(idx, 10)];
+        return t ? renderMathTokenToHtml(t.math, t.displayMode) : match;
+      });
+
       return formatCitationBadges(parsed);
+    }
+
+    function triggerMathTypeset(container) {
+      if (!container) return;
+      if (typeof renderMathInElement !== "undefined") {
+        try {
+          renderMathInElement(container, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "\\[", right: "\\]", display: true },
+              { left: "$", right: "$", display: false },
+              { left: "\\(", right: "\\)", display: false }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn("KaTeX renderMathInElement error:", e);
+        }
+      }
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([container]).catch(err => console.warn("MathJax typeset error:", err));
+      }
     }
 
     // Toggle Thinking Accordion
@@ -7771,6 +7918,7 @@ JSON 输出格式如下：
         container.appendChild(row);
       });
 
+      triggerMathTypeset(container);
       scrollToBottomIfNeeded();
     }
 
@@ -8220,6 +8368,7 @@ JSON 输出格式如下：
 
           // Save to Session Storage
           ChatSessionManager.appendMessage("assistant", finalContent, finalThinking, sourcesAccumulator);
+          triggerMathTypeset(wrap);
           updateChatSendButtonState(false);
           ChatSessionManager.isStreaming = false;
           ChatSessionManager.currentTypewriter = null;
