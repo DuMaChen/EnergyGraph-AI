@@ -7739,19 +7739,8 @@ JSON 输出格式如下：
       // 2. LaTeX environments: \\begin{equation}...\\end{equation}
       text = text.replace(/\\begin\{(equation|align|aligned|gather|matrix|bmatrix|pmatrix)\*?\}([\s\S]+?)\\end\{\1\*?\}/g, (m) => "\n\n" + saveMathToken(m, true) + "\n\n");
 
-      // 3. Bracket display math: [ ... ] (not followed by (link)) containing LaTeX indicators
-      const isLatex = (str) => /\\[a-zA-Z]+|[_^]\{|\b[a-zA-Z]_[a-zA-Z0-9]/.test(str);
-      text = text.replace(/\[\s*([^\]\n]+(?:[\r\n]+[^\]\n]+)*?)\s*\](?!\()/g, (m, c) => {
-        if (isLatex(c)) {
-          return "\n\n" + saveMathToken(c, true) + "\n\n";
-        }
-        return m;
-      });
-
-      // 4. Standard inline math: \\(...\\)
+      // 3. Standard inline math: \\( ... \\) and $...$
       text = text.replace(/\\\(([\s\S]+?)\\\)/g, (m, c) => saveMathToken(c, false));
-
-      // 5. Standard $...$ inline math (single dollar)
       text = text.replace(/(^|[^\$])\$([^\$\n]+?)\$(?!\$)/g, (m, prefix, c) => {
         if (c.trim().length > 0) {
           return prefix + saveMathToken(c, false);
@@ -7759,13 +7748,55 @@ JSON 输出格式如下：
         return m;
       });
 
-      // 6. Parentheses with LaTeX indicators: ( E_{\\text{stor}} )
-      text = text.replace(/\(\s*([^\)\n]+?)\s*\)/g, (m, c) => {
-        if (isLatex(c)) {
-          return saveMathToken(c, false);
+      // 4. Balanced parenthesis ( ... ) and bracket [ ... ] math scanner
+      function isMathContent(str) {
+        if (!str || !str.trim()) return false;
+        const s = str.trim();
+        if (/\\[a-zA-Z]+|[_^]\{|\b[a-zA-Z]_[a-zA-Z0-9]|=|\+|-|\\times|\/|\\frac|\\int|\\sum|\\eta|\\tau|\\alpha|\\beta|\\mu|\\sigma|\\theta|\\Delta|\\approx|\\le|\\ge|\\pm|\\cdot|\\left|\\right/.test(s)) {
+          return true;
         }
-        return m;
-      });
+        // Single variable or abbreviation symbol: (E), (P), (t), (L), (N), (k), (SOC), (SOC_0), (L_0), (Q_N), etc.
+        if (/^[A-Za-z0-9_]{1,6}$/.test(s) && !/^(and|or|not|the|for|in|on|at|to|by|is|are|was|were|a|an)$/i.test(s)) {
+          return true;
+        }
+        return false;
+      }
+
+      let balancedResult = "";
+      let i = 0;
+      while (i < text.length) {
+        if (text[i] === "(" || (text[i] === "[" && text[i-1] !== "!" && (i === 0 || text[i-1] !== "]"))) {
+          const openChar = text[i];
+          const closeChar = openChar === "(" ? ")" : "]";
+          let depth = 1;
+          let j = i + 1;
+          while (j < text.length && depth > 0) {
+            if (text[j] === "\n" && depth > 1) {
+              break;
+            }
+            if (text[j] === openChar) {
+              depth++;
+            } else if (text[j] === closeChar) {
+              depth--;
+            }
+            j++;
+          }
+
+          if (depth === 0) {
+            const content = text.slice(i + 1, j - 1);
+            const isMarkdownLink = (openChar === "[" && j < text.length && text[j] === "(");
+            if (!isMarkdownLink && isMathContent(content)) {
+              const isBlock = openChar === "[" || (content.length > 30 && content.includes("="));
+              balancedResult += isBlock ? ("\n\n" + saveMathToken(content, true) + "\n\n") : saveMathToken(content, false);
+              i = j;
+              continue;
+            }
+          }
+        }
+        balancedResult += text[i];
+        i++;
+      }
+      text = balancedResult;
 
       // Fix broken markdown bold syntax like ** text ** or ** text** or ** 重点强化**
       text = text
