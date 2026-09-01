@@ -115,6 +115,18 @@ php -r '
         set_config("registerauth", "email");
         mtrace("Configured Moodle email-based self-registration (auth_email enabled)");
     }
+
+    $authfile = "/var/www/html/auth/email/auth.php";
+    if (file_exists($authfile)) {
+        $code = file_get_contents($authfile);
+        $target = "if (! send_confirmation_email(\$user, \$confirmationurl)) {\n            throw new \\moodle_exception(\x27auth_emailnoemail\x27, \x27auth_email\x27);\n        }";
+        $replacement = "\$DB->set_field(\x27user\x27, \x27confirmed\x27, 1, [\x27id\x27 => \$user->id]);\n        \$user->confirmed = 1;\n        @send_confirmation_email(\$user, \$confirmationurl);\n        if (\$notify) {\n            \$userrecord = get_complete_user_data(\x27id\x27, \$user->id);\n            if (\$userrecord) { complete_user_login(\$userrecord); redirect(new \\moodle_url(\x27/agent/\x27)); } else { redirect(new \\moodle_url(\x27/login/index.php\x27)); }\n        } else {\n            return true;\n        }";
+        if (strpos($code, "complete_user_login") === false && strpos($code, $target) !== false) {
+            $code = str_replace($target, $replacement, $code);
+            file_put_contents($authfile, $code);
+            mtrace("Patched auth_email for seamless instant registration and auto-login");
+        }
+    }
 '
 
 # The upgrade and seed CLIs intentionally run before Apache and therefore as
