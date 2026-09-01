@@ -3241,7 +3241,7 @@
           <div class="view-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
             <div>
               <div class="breadcrumb">课程学习 / 思维导图</div>
-              <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 4px 0 2px;">课程思维导图 (引力关联网络)</h2>
+              <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin: 4px 0 2px;">课程思维导图 (知识关联网络)</h2>
               <div style="font-size: 12.5px; color: #6b7280;">可视化浏览 6 大核心章节与 20+ 知识点之间的先修依赖与关联脉络，支持滚轮缩放、拖拽与实时考点探究。</div>
             </div>
             <div style="display: flex; gap: 8px;">
@@ -9207,6 +9207,38 @@ JSON 输出格式如下：
       mindmapState.canvas = canvas;
       mindmapState.ctx = canvas.getContext("2d");
 
+      function calculateStaticMindmapPositions() {
+        const cx = mindmapState.width / 2;
+        const cy = mindmapState.height / 2;
+        const numChapters = 6;
+        const chapterRadius = Math.min(cx, cy) * 0.58;
+
+        const chapters = MINDMAP_DATA.nodes.filter(n => n.type === 'chapter');
+        chapters.forEach((ch, idx) => {
+          const angle = (idx / numChapters) * Math.PI * 2 - Math.PI / 6;
+          ch.x = Math.round(cx + Math.cos(angle) * chapterRadius);
+          ch.y = Math.round(cy + Math.sin(angle) * chapterRadius);
+          ch.angle = angle;
+        });
+
+        chapters.forEach(ch => {
+          const topics = MINDMAP_DATA.nodes.filter(n => n.chapterId === ch.id);
+          const count = topics.length;
+          const spread = Math.min(0.35 * (count - 1), 1.25);
+          const fanRadius = 90;
+
+          topics.forEach((t, i) => {
+            let offsetAngle = 0;
+            if (count > 1) {
+              offsetAngle = -spread / 2 + (i / (count - 1)) * spread;
+            }
+            const totalAngle = ch.angle + offsetAngle;
+            t.x = Math.round(ch.x + Math.cos(totalAngle) * fanRadius);
+            t.y = Math.round(ch.y + Math.sin(totalAngle) * fanRadius);
+          });
+        });
+      }
+
       function resizeCanvas() {
         const rect = container.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
@@ -9215,37 +9247,12 @@ JSON 输出格式如下：
         mindmapState.width = rect.width;
         mindmapState.height = rect.height;
         mindmapState.ctx.scale(dpr, dpr);
+        calculateStaticMindmapPositions();
+        renderMindmapCanvas();
       }
 
       resizeCanvas();
       window.addEventListener("resize", resizeCanvas);
-
-      // Distribute nodes initial positions in a circular formation around center
-      const cx = mindmapState.width / 2;
-      const cy = mindmapState.height / 2;
-      const numChapters = 6;
-      const chapterMap = {};
-
-      MINDMAP_DATA.nodes.forEach((n, idx) => {
-        if (n.type === 'chapter') {
-          const chNum = parseInt(n.id.replace('ch_', ''), 10) || (idx + 1);
-          const angle = ((chNum - 1) / numChapters) * Math.PI * 2;
-          const dist = Math.min(cx, cy) * 0.58;
-          n.x = cx + Math.cos(angle) * dist;
-          n.y = cy + Math.sin(angle) * dist;
-          chapterMap[n.id] = { x: n.x, y: n.y, angle: angle };
-        }
-      });
-
-      MINDMAP_DATA.nodes.forEach((n, idx) => {
-        if (n.type === 'topic') {
-          const parent = chapterMap[n.chapterId] || { x: cx, y: cy, angle: 0 };
-          const offsetAngle = parent.angle + (Math.random() - 0.5) * 1.5;
-          const offsetDist = 65 + Math.random() * 45;
-          n.x = parent.x + Math.cos(offsetAngle) * offsetDist;
-          n.y = parent.y + Math.sin(offsetAngle) * offsetDist;
-        }
-      });
 
       // Canvas Interaction Listeners
       canvas.addEventListener("mousedown", handleCanvasMouseDown);
@@ -9253,68 +9260,7 @@ JSON 输出格式如下：
       window.addEventListener("mouseup", handleCanvasMouseUp);
       canvas.addEventListener("wheel", handleCanvasWheel, { passive: false });
 
-      // Start physics animation loop
-      if (mindmapState.animId) cancelAnimationFrame(mindmapState.animId);
-      runMindmapLoop();
-    }
-
-    function runMindmapLoop() {
-      updateMindmapPhysics();
       renderMindmapCanvas();
-      mindmapState.animId = requestAnimationFrame(runMindmapLoop);
-    }
-
-    function updateMindmapPhysics() {
-      const nodes = MINDMAP_DATA.nodes;
-      const links = MINDMAP_DATA.links;
-      const cx = mindmapState.width / 2;
-      const cy = mindmapState.height / 2;
-
-      // 1. Repulsion between all nodes
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const n1 = nodes[i];
-          const n2 = nodes[j];
-          let dx = n1.x - n2.x;
-          let dy = n1.y - n2.y;
-          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          if (dist < 280) {
-            const force = (280 - dist) / dist * 0.04;
-            const fx = dx * force;
-            const fy = dy * force;
-            if (n1 !== mindmapState.dragNode) { n1.vx += fx; n1.vy += fy; }
-            if (n2 !== mindmapState.dragNode) { n2.vx -= fx; n2.vy -= fy; }
-          }
-        }
-      }
-
-      // 2. Spring force along links
-      links.forEach(link => {
-        const source = nodes.find(n => n.id === link.source);
-        const target = nodes.find(n => n.id === link.target);
-        if (source && target) {
-          let dx = target.x - source.x;
-          let dy = target.y - source.y;
-          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const targetDist = link.type === 'chapter' ? 75 : 95;
-          const force = (dist - targetDist) * 0.008;
-          const fx = (dx / dist) * force;
-          const fy = (dy / dist) * force;
-          if (source !== mindmapState.dragNode) { source.vx += fx; source.vy += fy; }
-          if (target !== mindmapState.dragNode) { target.vx -= fx; target.vy -= fy; }
-        }
-      });
-
-      // 3. Weak pull to center & apply velocities with damping
-      nodes.forEach(n => {
-        if (n === mindmapState.dragNode) return;
-        n.vx += (cx - n.x) * 0.001;
-        n.vy += (cy - n.y) * 0.001;
-        n.vx *= 0.88;
-        n.vy *= 0.88;
-        n.x += n.vx;
-        n.y += n.vy;
-      });
     }
 
     function renderMindmapCanvas() {
@@ -9447,6 +9393,7 @@ JSON 输出格式如下：
         mindmapState.dragNode = hitNode;
         mindmapState.selectedNode = hitNode;
         selectMindmapNode(hitNode);
+        renderMindmapCanvas();
       } else {
         mindmapState.isDragging = true;
         mindmapState.dragStartX = e.clientX - mindmapState.offsetX;
@@ -9464,16 +9411,17 @@ JSON 输出格式如下：
       if (mindmapState.dragNode) {
         mindmapState.dragNode.x = (x - mindmapState.offsetX) / mindmapState.scale;
         mindmapState.dragNode.y = (y - mindmapState.offsetY) / mindmapState.scale;
-        mindmapState.dragNode.vx = 0;
-        mindmapState.dragNode.vy = 0;
+        renderMindmapCanvas();
       } else if (mindmapState.isDragging) {
         mindmapState.offsetX = e.clientX - mindmapState.dragStartX;
         mindmapState.offsetY = e.clientY - mindmapState.dragStartY;
+        renderMindmapCanvas();
       } else {
         const hit = getNodeAtPosition(x, y);
         if (hit !== mindmapState.hoverNode) {
           mindmapState.hoverNode = hit;
           mindmapState.canvas.style.cursor = hit ? 'pointer' : 'grab';
+          renderMindmapCanvas();
         }
       }
     }
@@ -9482,6 +9430,7 @@ JSON 输出格式如下：
       mindmapState.isDragging = false;
       mindmapState.dragNode = null;
       if (mindmapState.canvas) mindmapState.canvas.style.cursor = 'grab';
+      renderMindmapCanvas();
     }
 
     function handleCanvasWheel(e) {
@@ -9496,6 +9445,7 @@ JSON 输出格式如下：
       mindmapState.offsetX = mouseX - (mouseX - mindmapState.offsetX) * (newScale / mindmapState.scale);
       mindmapState.offsetY = mouseY - (mouseY - mindmapState.offsetY) * (newScale / mindmapState.scale);
       mindmapState.scale = newScale;
+      renderMindmapCanvas();
     }
 
     function selectMindmapNode(node) {
@@ -9572,14 +9522,17 @@ JSON 输出格式如下：
       const buttons = document.querySelectorAll("#mindmapChapterFilters .btn-filter-tag");
       buttons.forEach(b => b.classList.remove("active"));
       if (btn) btn.classList.add("active");
+      renderMindmapCanvas();
     }
 
     function handleMindmapSearch(val) {
       mindmapState.searchQuery = val || '';
+      renderMindmapCanvas();
     }
 
     function zoomMindmap(factor) {
       mindmapState.scale = Math.min(Math.max(mindmapState.scale * factor, 0.35), 2.5);
+      renderMindmapCanvas();
     }
 
     function resetMindmapView() {
@@ -9593,6 +9546,7 @@ JSON 输出格式如下：
       const buttons = document.querySelectorAll("#mindmapChapterFilters .btn-filter-tag");
       buttons.forEach(b => b.classList.remove("active"));
       if (buttons[0]) buttons[0].classList.add("active");
+      renderMindmapCanvas();
     }
 
   </script>
