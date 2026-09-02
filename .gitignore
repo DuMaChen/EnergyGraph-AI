@@ -33,3 +33,17 @@ scripts/sample_pdf_b64.txt
 /backups/
 /05-作品代码/*.tar.gz
 
+# AI Assistant, Agent framework & IDE metadata
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.trellis/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+
