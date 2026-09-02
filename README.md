@@ -78,6 +78,5 @@ bash scripts/pre_submission_audit.sh
 - **平台使用手册**：[`USER_MANUAL.md`](USER_MANUAL.md) / [`07-其他材料/平台使用手册.md`](07-其他材料/平台使用手册.md)
 - **实施与验收计划**：[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
 - **项目状态快照**：[`PROJECT_STATUS.md`](PROJECT_STATUS.md)
-- **竞赛申报材料**：`01-参赛信息/` 至 `07-其他材料/`
 
 

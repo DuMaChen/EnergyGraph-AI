@@ -46,4 +46,14 @@ scripts/sample_pdf_b64.txt
 *.swp
 *.swo
 
+# Competition submission folders (kept local, only platform user manual is synced)
+/01-参赛信息/
+/02-伦理与安全合规性声明/
+/03-作品Demo/
+/04-作品方案/
+/05-作品代码/
+/06-效果验证报告/
+/07-其他材料/README.md
+
+
 
