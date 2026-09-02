@@ -3107,8 +3107,8 @@
             </div>
             <div class="metric-card" style="cursor: pointer;" onclick="switchView('analytics')">
               <div class="metric-label">综合测验得分</div>
-              <div class="metric-val">94 分</div>
-              <div class="metric-desc">超越班级 92% 同学</div>
+              <div class="metric-val" id="metricAvgScoreVal">100 分</div>
+              <div class="metric-desc">超越班级 95% 同学</div>
             </div>
             <div class="metric-card" style="cursor: pointer;" onclick="switchView('notices')">
               <div class="metric-label">通知与研讨</div>
@@ -4525,8 +4525,8 @@
           type: "1 个学习单元",
           deadline: "已归档",
           status: "done",
-          statusText: "已完成 / 94分",
-          score: 94,
+          statusText: "已完成 / 100分",
+          score: 100,
           questions: [
             {
               id: 1,
@@ -4581,7 +4581,7 @@
               userAns: "B",
               correct: "B",
               isCorrect: true,
-              earnedScore: 34,
+              earnedScore: 40,
               explanation: "跟网型 (Grid-Following) 变流器等效为受控电流源并依赖电网锁相环；而构网型 (Grid-Forming) 变流器等效为内部受控电压源，模拟同步电机惯量与阻尼，具备自主建立电压与频率的能力。",
               source: { name: "3.4 储能变流器拓扑及并网控制.pdf", page: 12 }
             }
@@ -5371,6 +5371,20 @@
       document.getElementById("metricPendingTasksVal").textContent = `${COURSE_DATA.tasks.filter(t => t.status === 'pending').length} 项`;
       document.getElementById("metricNoticeVal").textContent = `${COURSE_DATA.notices.length} 条`;
       document.getElementById("metricCoursewareVal").textContent = `${COURSE_DATA.coursewares.length} 份`;
+
+      const doneTasks = COURSE_DATA.tasks.filter(t => t.status === "done" || (t.score !== null && t.score !== undefined));
+      let totalEarned = 0, totalPossible = 0;
+      doneTasks.forEach(t => {
+        if (Array.isArray(t.questions)) {
+          t.questions.forEach(q => {
+            totalPossible += parseInt(q.score, 10) || 0;
+            totalEarned += parseInt(q.earnedScore !== undefined ? q.earnedScore : (q.isCorrect !== false ? q.score : 0), 10) || 0;
+          });
+        }
+      });
+      const avgScore = totalPossible > 0 ? Math.round((totalEarned / totalPossible) * 100) : 100;
+      const metricAvgEl = document.getElementById("metricAvgScoreVal");
+      if (metricAvgEl) metricAvgEl.textContent = `${avgScore} 分`;
     }
 
     // =========================================================================
