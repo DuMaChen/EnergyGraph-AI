@@ -16,7 +16,7 @@
     # All course-facing API routes are owned by the Adapter. Keeping this as
     # one same-origin prefix prevents graph, assessment, scenario and KB calls
     # from falling through to Moodle and producing misleading 404 pages.
-    @course_agent_api path /api/*
+    @course_agent_api path /api/* /health
     handle @course_agent_api {
         reverse_proxy agent-adapter:8081
     }

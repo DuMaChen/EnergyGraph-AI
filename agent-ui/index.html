@@ -5183,8 +5183,14 @@
             switchView("notices");
           } else {
             switchView("ai-tutor");
-            document.getElementById("sparkQuestionInput").value = input.value;
-            sendSparkQuestion();
+            setTimeout(() => {
+              const textarea = document.getElementById("chatInputTextarea");
+              if (textarea) {
+                textarea.value = input.value;
+                if (typeof autoResizeChatInput === "function") autoResizeChatInput(textarea);
+              }
+              if (typeof handleSendChatMessage === "function") handleSendChatMessage();
+            }, 100);
           }
         }
       });
@@ -6690,7 +6696,8 @@ JSON 输出格式如下：
       }
       
       if (currentGradebookSearch) {
-        list = list.filter(s => (s.name && s.name.toLowerCase().includes(q)) || String(s.id).includes(q));
+        const q = currentGradebookSearch.toLowerCase();
+        list = list.filter(s => (s.name && s.name.toLowerCase().includes(q)) || String(s.id).toLowerCase().includes(q));
       }
       
       if (list.length === 0) {
@@ -6745,14 +6752,14 @@ JSON 输出格式如下：
     function exportClassGradeReport() {
       showToast("正在生成《电力系统储能技术》全班42名学生成绩单 Excel...", "info");
       setTimeout(() => {
-        showToast(" 全班成绩单 (Excel) 已生成并开始下载！", "success");
+        showToast("全班成绩单 (Excel) 已生成并开始下载！", "success");
       }, 800);
     }
 
     function syncGradesToMoodle() {
       showToast("正在将平时成绩与批改得分同步至教务成绩库...", "info");
       setTimeout(() => {
-        showToast(" 42 名学生综合成绩已全部同步至 Moodle Gradebook！", "success");
+        showToast("42 名学生综合成绩已全部同步至 Moodle Gradebook！", "success");
       }, 1000);
     }
 
@@ -6761,17 +6768,17 @@ JSON 输出格式如下：
     }
 
     function sendTargetedExercises() {
-      showToast(" 已向 2 位学情预警同学（顾问、李思源）推送专属靶向习题包！", "success");
+      showToast("已向 2 位学情预警同学（顾问、李思源）推送专属靶向习题包！", "success");
     }
 
     function generateClassExamReport() {
-      showToast(" 班级学情诊断与教学改进 PDF 简报已生成完毕！", "success");
+      showToast("班级学情诊断与教学改进 PDF 简报已生成完毕！", "success");
     }
 
     // =========================================================================
     // 3. Review & Mistake Modal
     // =========================================================================
-        function openReviewModal(taskId) {
+    function openReviewModal(taskId) {
       const task = COURSE_DATA.tasks.find(t => t.id === taskId) || COURSE_DATA.tasks[3];
       const paperTotal = task.totalScore || task.questions.reduce((s, q) => s + (parseInt(q.score, 10) || 0), 0) || 100;
       const earnedTotal = task.score !== null && task.score !== undefined ? task.score : task.questions.reduce((s, q) => s + (parseInt(q.earnedScore, 10) || 0), 0);
@@ -6793,19 +6800,23 @@ JSON 输出格式如下：
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 16px;">
-          ${task.questions.map((q, idx) => `
-            <div class="review-item-card" style="border-left: 4px solid ${q.isCorrect !== false ? '#10b981' : '#ef4444'};">
+          ${task.questions.map((q, idx) => {
+            const isQCorrect = q.isCorrect !== false && (q.earnedScore === undefined || q.earnedScore === q.score);
+            const qType = q.typeText || (q.type === 'multi' ? '多选题' : (q.type === 'judge' ? '判断题' : '单选题'));
+            const statusLabel = isQCorrect ? `正确 (+${q.earnedScore !== undefined ? q.earnedScore : q.score}分)` : (q.earnedScore > 0 ? `部分得分 (${q.earnedScore}/${q.score}分)` : `错误 (0/${q.score}分)`);
+            return `
+            <div class="review-item-card" style="border-left: 4px solid ${isQCorrect ? '#10b981' : (q.earnedScore > 0 ? '#f59e0b' : '#ef4444')};">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span class="q-type-badge">[${q.typeText || '单选题'}] (本题满分: ${q.score}分) &nbsp; 第 ${idx + 1} 题</span>
-                <span style="font-weight: 600; font-size: 13px; color: ${q.isCorrect !== false ? '#059669' : '#dc2626'};">
-                  ${q.isCorrect !== false ? ' 正确 (+' + (q.earnedScore !== undefined ? q.earnedScore : q.score) + '分)' : ' 错误 (得 ' + (q.earnedScore || 0) + '/' + q.score + '分)'}
+                <span class="q-type-badge">[${qType}] (本题满分: ${q.score}分) &nbsp; 第 ${idx + 1} 题</span>
+                <span style="font-weight: 600; font-size: 13px; color: ${isQCorrect ? '#059669' : (q.earnedScore > 0 ? '#b45309' : '#dc2626')};">
+                  ${statusLabel}
                 </span>
               </div>
               <div style="font-size: 14.5px; font-weight: 600; color: #111827; margin-bottom: 12px;">
                 ${q.stem}
               </div>
               <div style="font-size: 13px; margin-bottom: 4px; color: #4b5563;">
-                您的作答：<strong style="color: ${q.isCorrect !== false ? '#059669' : '#dc2626'};">${q.userAns || q.correct}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; 
+                您的作答：<strong style="color: ${isQCorrect ? '#059669' : '#dc2626'};">${q.userAns || q.correct}</strong> &nbsp;&nbsp;|&nbsp;&nbsp; 
                 正确答案：<strong style="color: #059669;">${q.correct}</strong>
               </div>
               <div style="background: #fafbfc; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; font-size: 13px; line-height: 1.6; color: #374151; margin-top: 10px;">
@@ -6813,12 +6824,12 @@ JSON 输出格式如下：
                 <div>${q.explanation}</div>
                 ${q.source ? `
                   <a class="source-jump-tag" onclick="closeReviewModal(); openPdfReaderByFilename('${q.source.name}', ${q.source.page});">
-                     关联知识点来源：${q.source.name} 第 ${q.source.page} 页 (点击直接在阅读器中定位)
+                    关联知识点来源：${q.source.name} 第 ${q.source.page} 页 (点击直接在阅读器中定位)
                   </a>
                 ` : ''}
               </div>
             </div>
-          `).join('')}
+          `}).join('')}
         </div>
       `;
       
@@ -6929,13 +6940,23 @@ JSON 输出格式如下：
       const rawName = String(filename).trim();
       const cleanName = rawName.replace(/\.pdf$/i, "").replace(/[《》\[\]]/g, "").trim();
       
-      // 1. Direct or partial match across COURSE_DATA.coursewares
-      let idx = COURSE_DATA.coursewares.findIndex(c => {
-        const cClean = c.name.replace(/\.pdf$/i, "").trim();
-        return cClean === cleanName || c.name === rawName || cClean.includes(cleanName) || cleanName.includes(cClean) || (c.file && (c.file.includes(cleanName) || cleanName.includes(c.file)));
-      });
+      // 1. Priority Match: Extract section number (e.g. "1.1", "3.4", "6.2")
+      let idx = -1;
+      const secMatch = rawName.match(/(\d+\.\d+)/);
+      if (secMatch) {
+        const secId = secMatch[1];
+        idx = COURSE_DATA.coursewares.findIndex(c => c.id === secId);
+      }
       
-      // 2. Intelligent semantic fallback for syllabus or chapter mentions
+      // 2. Direct or partial match across COURSE_DATA.coursewares
+      if (idx < 0) {
+        idx = COURSE_DATA.coursewares.findIndex(c => {
+          const cClean = c.name.replace(/\.pdf$/i, "").trim();
+          return cClean === cleanName || c.name === rawName || cClean.includes(cleanName) || cleanName.includes(cClean) || (c.file && (c.file.includes(cleanName) || cleanName.includes(c.file)));
+        });
+      }
+      
+      // 3. Intelligent semantic fallback for syllabus or chapter mentions
       if (idx < 0) {
         if (/大纲|概述|导论|导引|绪论|介绍|概论|基础/i.test(cleanName)) {
           idx = 0; // 1.1 电力储能技术的概念.pdf
@@ -6949,7 +6970,7 @@ JSON 输出格式如下：
           idx = 11;
         } else if (/第\s*5\s*章|接入|运行控制|运行维护|案例/i.test(cleanName)) {
           idx = 14;
-        } else if (/第\s*6\s*章|性能检测|综合评估/i.test(cleanName)) {
+        } else if (/第\s*6\s*章|性能检测|综合评估|系统评估/i.test(cleanName)) {
           idx = 18;
         } else {
           idx = 0;
@@ -9142,8 +9163,8 @@ JSON 输出格式如下：
         { id: 'kp_5_4', name: '5.4 储能系统典型运行案例', type: 'topic', chapterId: 'ch_5', chapter: '第5章 电力储能系统的接入与运行控制', color: '#fb7185', radius: 13, x: 0, y: 0, vx: 0, vy: 0, prereq: '5.3 储能系统的运行维护', related: '6.1 电力储能系统的性能检测', file: '5.4 电力储能系统的运行案例.pdf', page: 1, summary: '百兆瓦级电网侧独立储能电站与风光储一体化实际运行数据剖析。' },
 
         { id: 'ch_6', name: '第6章 储能性能检测与评估', type: 'chapter', chapter: '第6章 电力储能系统的性能检测与评估', color: '#4f46e5', radius: 22, x: 0, y: 0, vx: 0, vy: 0, summary: '国家标准检测规范、充放电效率测试、容量保持率及安全性评估。' },
-        { id: 'kp_6_1', name: '6.1 储能系统的性能检测', type: 'topic', chapterId: 'ch_6', chapter: '第6章 电力储能系统的性能检测与评估', color: '#818cf8', radius: 13, x: 0, y: 0, vx: 0, vy: 0, prereq: '5.4 储能系统典型运行案例', related: '6.2 电力储能系统的系统评估', file: '6.1 电力储能系统的性能检测.pdf', page: 1, summary: '额定能量、转换效率、响应时间、连续充放电倍率标准测试规程。' },
-        { id: 'kp_6_2', name: '6.2 储能系统的系统评估', type: 'topic', chapterId: 'ch_6', chapter: '第6章 电力储能系统的性能检测与评估', color: '#818cf8', radius: 13, x: 0, y: 0, vx: 0, vy: 0, prereq: '6.1 储能系统的性能检测', related: '4.2 电化学储能系统的规划配置', file: '6.2 电力储能系统的系统评估.pdf', page: 1, summary: '技术成熟度、环境效益、全寿命周期碳减排核算与综合效益评价。' }
+        { id: 'kp_6_1', name: '6.1 储能系统的性能检测', type: 'topic', chapterId: 'ch_6', chapter: '第6章 电力储能系统的性能检测与综合评估', color: '#818cf8', radius: 13, x: 0, y: 0, vx: 0, vy: 0, prereq: '5.4 储能系统典型运行案例', related: '6.2 电力储能系统的综合评估', file: '6.1 电力储能系统的性能检测.pdf', page: 1, summary: '额定能量、转换效率、响应时间、连续充放电倍率标准测试规程。' },
+        { id: 'kp_6_2', name: '6.2 储能系统的综合评估', type: 'topic', chapterId: 'ch_6', chapter: '第6章 电力储能系统的性能检测与综合评估', color: '#818cf8', radius: 13, x: 0, y: 0, vx: 0, vy: 0, prereq: '6.1 储能系统的性能检测', related: '4.2 电化学储能系统的规划配置', file: '6.2 电力储能系统的综合评估.pdf', page: 1, summary: '技术成熟度、环境效益、全寿命周期碳减排核算与综合效益评价。' }
       ],
       links: [
         { source: 'ch_1', target: 'kp_1_1', type: 'chapter' },
@@ -9526,7 +9547,7 @@ JSON 输出格式如下：
       const btnPdf = document.getElementById("btnMindmapOpenPdf");
       if (btnPdf) {
         btnPdf.onclick = () => {
-          openCoursewareReader(node.file || "3.4 储能变流器拓扑及并网控制.pdf", node.name, node.page || 1);
+          openPdfReaderByFilename(node.file || "3.4 储能变流器拓扑及并网控制.pdf", node.page || 1);
         };
       }
     }

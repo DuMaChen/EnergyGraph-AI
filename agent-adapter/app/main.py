@@ -576,14 +576,30 @@ def is_learning_diagnosis_intent(question: str, mode: str) -> bool:
 
 
 VALID_COURSEWARE_WHITELIST: set[str] = {
-    "1.1 电力储能技术的概念 .pdf", "1.2 电力储能技术的发展.pdf", "1.3 储能技术在电力系统中的应用.pdf",
+    "1.1 电力储能技术的概念.pdf", "1.1 电力储能技术的概念 .pdf", "1.2 电力储能技术的发展.pdf", "1.3 储能技术在电力系统中的应用.pdf",
     "2.1 电力系统的基本概念.pdf", "2.2 电力系统的运行特点和要求.pdf", "2.3 储能技术的典型应用.pdf",
     "3.1 抽水蓄能电站的组成及工作原理.pdf", "3.2 新型电力储能系统的组成.pdf", "3.3 新型电能存储设备工作原理.pdf",
     "3.4 储能变流器拓扑及并网控制.pdf", "3.5 储能监控系统结构及通信.pdf",
     "4.1 抽水蓄能电站的规划配置.pdf", "4.2 电化学储能系统的规划配置.pdf", "4.3 电池储能系统集成技术.pdf",
     "5.1 电力储能系统的接入.pdf", "5.2 电力储能系统的运行控制.pdf", "5.3 电力储能系统的运行维护.pdf", "5.4 电力储能系统的运行案例.pdf",
-    "6.1 电力储能系统的性能检测.pdf", "6.2 电力储能系统的系统评估.pdf"
+    "6.1 电力储能系统的性能检测.pdf", "6.2 电力储能系统的综合评估.pdf", "6.2 电力储能系统的系统评估.pdf"
 }
+
+
+def is_valid_courseware_name(name: str) -> bool:
+    """Check if courseware name or stem belongs to the 20 official coursewares."""
+    if not name:
+        return False
+    normalized = re.sub(r"\s+\.pdf$", ".pdf", str(name).strip(), flags=re.IGNORECASE)
+    if normalized in VALID_COURSEWARE_WHITELIST:
+        return True
+    clean_stem = re.sub(r"\.pdf$", "", normalized, flags=re.IGNORECASE).strip()
+    for cw in VALID_COURSEWARE_WHITELIST:
+        cw_stem = re.sub(r"\.pdf$", "", cw, flags=re.IGNORECASE).strip()
+        if clean_stem == cw_stem:
+            return True
+    return False
+
 
 
 def extract_and_normalize_answer(raw_input: str) -> str | None:
@@ -779,7 +795,7 @@ def extract_quiz_meta_fallback(full_text: str) -> dict[str, Any]:
             knowledge_point = knowledge_point or "5.3 储能安全与热失控消防"
             explanation = explanation or "储能舱三级消防包含早期气体探测（CO/H2）、灭火介质喷淋与防爆排烟系统。"
         else:
-            courseware = "1.1 电力储能技术的概念 .pdf P6"
+            courseware = "1.1 电力储能技术的概念.pdf P6"
             knowledge_point = knowledge_point or "储能系统核心机理考点"
             explanation = explanation or "请结合相关课件深入掌握储能工作机理与系统集成控制规范。"
 
@@ -2844,7 +2860,7 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 quiz_stream_chunks: list[str] = []
                 stream_buffer = ""
                 hidden_tag_found = False
-                pre_tag_emitted = False
+                emitted_chars = 0
                 async for event in xingchen_stream(quiz_params, identity, request_id, retrieved_sources=retrieved_sources):
                     if event["event"] == "token":
                         raw_tok = str(event["data"].get("text", ""))
@@ -2853,7 +2869,7 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         
                         # Detect any hidden tags or answer headers
                         hide_pos = -1
-                        for tag in ["<!--HIDDEN_META:", "【标准答案】", "【答案】", "标准答案：", "答案："]:
+                        for tag in ["<!--HIDDEN_META:", "【标准答案】", "【答案】", "标准答案：", "答案：", "<!--"]:
                             idx = stream_buffer.find(tag)
                             if idx != -1 and (hide_pos == -1 or idx < hide_pos):
                                 hide_pos = idx
@@ -2861,12 +2877,14 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         if hide_pos != -1:
                             if not hidden_tag_found:
                                 hidden_tag_found = True
-                                pre_tag = stream_buffer[:hide_pos]
-                                if pre_tag and not pre_tag_emitted:
-                                    yield f"event: token\ndata: {json.dumps({'text': pre_tag, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
-                                    pre_tag_emitted = True
-                        elif not hidden_tag_found and not stream_buffer.startswith("<!--"):
+                                if hide_pos > emitted_chars:
+                                    delta_chunk = stream_buffer[emitted_chars:hide_pos]
+                                    if delta_chunk:
+                                        yield f"event: token\ndata: {json.dumps({'text': delta_chunk, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                                    emitted_chars = hide_pos
+                        elif not hidden_tag_found:
                             yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                            emitted_chars += len(raw_tok)
                     elif event["event"] == "source":
                         yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
                     elif event["event"] == "error":
@@ -3027,30 +3045,32 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
 
             emitted_tokens = 0
             for event in raw_qa_events:
+                is_scenario_turn = isinstance(session_id, str) and (mode == "scenario" or parameters.get("AGENT_MODE") == "scenario")
                 if event["event"] == "token":
                     raw_text = str(event["data"].get("text", ""))
                     if raw_text:
                         emitted_tokens += 1
-                        if isinstance(session_id, str) and parameters.get("AGENT_MODE") == "scenario":
+                        if is_scenario_turn:
                             scenario_chunks.append(raw_text)
                         yield f"event: token\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
                 elif event["event"] == "source":
-                    if isinstance(session_id, str) and parameters.get("AGENT_MODE") == "scenario":
+                    if is_scenario_turn:
                         scenario_sources.append(event["data"])
                     yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
                 elif event["event"] == "error":
-                    if isinstance(session_id, str) and parameters.get("AGENT_MODE") == "scenario":
+                    if is_scenario_turn:
                         scenario_failed = True
                     yield f"event: error\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
                 elif event["event"] == "done":
-                    if isinstance(session_id, str) and parameters.get("AGENT_MODE") == "scenario":
+                    if is_scenario_turn:
                         completed = store.complete_turn(identity.uid, session_id, int(scenario_turn_no or 0), "".join(scenario_chunks), scenario_sources)
                         scenario_finished = bool(completed)
                         if scenario_finished:
                             store.save_idempotent(identity.uid, f"/course-agent/scenario/{session_id}", scenario_idem_key, scenario_request_body, {"session_id": session_id, "turn_no": scenario_turn_no, "status": "completed", "assistant_text": "".join(scenario_chunks), "evidence": scenario_sources})
                     yield f"event: done\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
         finally:
-            if isinstance(session_id, str) and parameters.get("AGENT_MODE") == "scenario" and (scenario_failed or not scenario_finished):
+            is_scenario_turn = isinstance(session_id, str) and (mode == "scenario" or parameters.get("AGENT_MODE") == "scenario")
+            if is_scenario_turn and (scenario_failed or not scenario_finished):
                 store.reset_pending_turn(identity.uid, session_id, int(scenario_turn_no or 0))
 
     return StreamingResponse(event_stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Request-ID": request_id})
