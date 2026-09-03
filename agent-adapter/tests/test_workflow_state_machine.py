@@ -111,7 +111,7 @@ class TestWorkflowStateMachine(unittest.TestCase):
         # 5. Learning diagnosis
         self.assertEqual(
             classify_workflow_intent("请根据我的做题记录进行全面学情诊断与错题归因分析", state),
-            "learning_diagnosis",
+            "diagnosis_start",
         )
 
     def test_teaching_state_manager_concurrency_and_ttl(self):

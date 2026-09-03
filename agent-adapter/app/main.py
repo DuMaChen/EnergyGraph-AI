@@ -559,6 +559,144 @@ def build_student_learning_diagnosis_report(student_ctx: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+DIAGNOSTIC_QUESTION_BANK: list[dict[str, Any]] = [
+    {
+        "step": 1,
+        "chapter": "第1章 基础原理与应用",
+        "knowledge_point": "1.3 储能技术在电力系统中的应用",
+        "stem": "【学情诊断测评 第 1/3 题 - 基础原理与应用】\n在新型电力系统日常调频与电网安全稳定控制中，具备毫秒级响应速度、适合承担短时间高功率冲击平抑的储能技术类型是：\nA. 抽水蓄能电站\nB. 功率型电化学储能（如飞轮/超级电容/高倍率锂电）\nC. 压缩空气储能\nD. 重力储能电站",
+        "options": {
+            "A": "抽水蓄能电站",
+            "B": "功率型电化学储能（如飞轮/超级电容/高倍率锂电）",
+            "C": "压缩空气储能",
+            "D": "重力储能电站"
+        },
+        "correct_answer": "B",
+        "explanation": "飞轮、超级电容及高倍率锂电池等功率型储能具有毫秒级快速响应能力，主要承担系统一次调频与功率冲击平抑；而抽水蓄能和压缩空气储能属于能量型储能，响应时间多在秒级至分钟级。",
+        "courseware": "1.3 储能技术在电力系统中的应用.pdf P6"
+    },
+    {
+        "step": 2,
+        "chapter": "第3章 电气控制与变流器",
+        "knowledge_point": "3.4 储能变流器拓扑及并网控制",
+        "stem": "【学情诊断测评 第 2/3 题 - 变流器控制机理】\n在新型电力系统高比例新能源场景下，构网型（Grid-Forming, GFM）储能变流器与传统跟网型（Grid-Following, GFL）变流器的最本质区别在于：\nA. GFM 变流器内部呈现为受控电流源特性\nB. GFM 变流器内部呈现为受控电压源特性，具备自主建立电压与频率支撑能力\nC. GFM 变流器无法在微电网孤岛模式下运行\nD. GFM 变流器不需要电网同步环路与下垂控制",
+        "options": {
+            "A": "GFM 变流器内部呈现为受控电流源特性",
+            "B": "GFM 变流器内部呈现为受控电压源特性，具备自主建立电压与频率支撑能力",
+            "C": "GFM 变流器无法在微电网孤岛模式下运行",
+            "D": "GFM 变流器不需要电网同步环路与下垂控制"
+        },
+        "correct_answer": "B",
+        "explanation": "跟网型变流器（GFL）本质等效为受控电流源，依赖稳定电网提供电压频率基准；而构网型变流器（GFM）等效为内部受控电压源，通过虚拟同步发电机（VSG）或下垂控制自主建立电压幅值与电网频率支撑。",
+        "courseware": "3.4 储能变流器拓扑及并网控制.pdf P12"
+    },
+    {
+        "step": 3,
+        "chapter": "第4章 规划配置与综合评估",
+        "knowledge_point": "4.2 电化学储能系统的规划配置",
+        "stem": "【学情诊断测评 第 3/3 题 - 规划配置与综合评估】\n在进行电化学储能系统全寿命周期经济性核算与系统评估时，LCOS（Levelized Cost of Storage，平准化度电成本）模型主要用于衡量：\nA. 储能电站并网变压器的空载损耗率\nB. 储能电池单体在实验室条件下的充放电库仑效率\nC. 储能系统在整个全生命周期内释放单位电量所需的综合折算成本\nD. 储能电站消防防爆系统的初始建设投资比重",
+        "options": {
+            "A": "储能电站并网变压器的空载损耗率",
+            "B": "储能电池单体在实验室条件下的充放电库仑效率",
+            "C": "储能系统在整个全生命周期内释放单位电量所需的综合折算成本",
+            "D": "储能电站消防防爆系统的初始建设投资比重"
+        },
+        "correct_answer": "C",
+        "explanation": "LCOS（平准化度电储能成本）综合考虑了储能电站初始投资建设成本（CAPEX）、运营维护成本（OPEX）、充放电效率损耗、全寿命周期充放电循环次数及残值折现，用于计算储能系统生命周期内每放出一度电的综合全成本。",
+        "courseware": "4.2 电化学储能系统的规划配置.pdf P8"
+    }
+]
+
+
+def build_interactive_diagnosis_report(diag_records: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
+    total_q = len(diag_records) if diag_records else 3
+    correct_count = sum(1 for r in diag_records if r.get("is_correct"))
+    accuracy = round((correct_count / total_q) * 100, 1) if total_q > 0 else 0.0
+    
+    if accuracy >= 80:
+        level_label = "【卓越 / 熟练掌握】"
+        overall_comment = "您在《电力系统储能技术》各核心知识维度表现优异，基础原理扎实，变流器控制与系统规划概念理解透彻。"
+    elif accuracy >= 50:
+        level_label = "【良好 / 稳步提升】"
+        overall_comment = "您已较好掌握了储能核心框架，但在部分电气控制机理或工程规划经济性细节上存在概念混淆，建议结合课件进行针对性复习。"
+    else:
+        level_label = "【待加强 / 需重点突破】"
+        overall_comment = "您在储能控制特性与参数模型等关键考点上存在认知盲区，建议跟随名师讲义开展靶向巩固。"
+
+    lines = [
+        "## 《电力系统储能技术》学情诊断综合报告",
+        "",
+        "### 一、本轮诊断测评战绩概况",
+        f"- **总测评题数**：{total_q} 题",
+        f"- **正确作答数**：{correct_count} 题",
+        f"- **答题正确率**：{accuracy}%",
+        f"- **学情综合评级**：{level_label}",
+        f"- **总体学习评价**：{overall_comment}",
+        "",
+        "### 二、核心知识维度掌握度画像",
+    ]
+
+    for idx, r in enumerate(diag_records, 1):
+        kp = r.get("knowledge_point", f"考点{idx}")
+        chapter = r.get("chapter", "")
+        is_c = r.get("is_correct", False)
+        status_tag = "掌握良好" if is_c else "存在薄弱项"
+        lines.append(f"{idx}. **{chapter} - {kp}**：`[{status_tag}]`（作答：`{r.get('user_answer', '-')}`，标准：`{r.get('correct_answer', '-')}`）")
+
+    wrong_records = [r for r in diag_records if not r.get("is_correct")]
+    lines.append("")
+    lines.append("### 三、错题根因剖析与深度辨析")
+    if not wrong_records:
+        lines.append("- **完美表现**：本轮诊断所有考点试题均作答正确，概念清晰，无错题记录！")
+    else:
+        for w in wrong_records:
+            kp = w.get("knowledge_point", "储能考点")
+            lines.append(f"#### 错题考点：{kp}")
+            lines.append(f"- **您的选择**：选项 `{w.get('user_answer', '')}`")
+            lines.append(f"- **标准选项**：选项 `{w.get('correct_answer', '')}`")
+            lines.append(f"- **考点解析**：{w.get('explanation', '')}")
+            cw = w.get("courseware", "")
+            if cw:
+                lines.append(f"- **课件溯源**：[{cw} ↗]")
+            lines.append("")
+
+    lines.append("### 四、专属靶向复习路径与课件直达推荐")
+    sources: list[dict[str, Any]] = []
+    
+    target_records = wrong_records if wrong_records else diag_records
+    for r in target_records:
+        cw_str = str(r.get("courseware", "")).strip()
+        if " P" in cw_str:
+            cw_file = cw_str.split(" P")[0].strip()
+            cw_page_str = cw_str.split(" P")[1].strip()
+            try:
+                cw_page = int(cw_page_str)
+            except Exception:
+                cw_page = 1
+        else:
+            cw_file = cw_str
+            cw_page = 1
+            
+        if cw_file not in VALID_COURSEWARE_WHITELIST:
+            cw_file = "3.4 储能变流器拓扑及并网控制.pdf"
+            
+        sources.append({
+            "source_id": f"cw_{cw_page}_{abs(hash(cw_file)) % 10000}",
+            "file": cw_file,
+            "chapter": str(r.get("knowledge_point", "储能知识点")),
+            "page": cw_page,
+            "version": "v1.0",
+            "status": "active"
+        })
+        lines.append(f"- **推荐复习讲义**：[{cw_file} 第 {cw_page} 页 ↗]（重点复习考点：{r.get('knowledge_point', '')}）")
+
+    lines.append("")
+    lines.append("---")
+    lines.append("本轮学情诊断已完成，诊断数据已同步至您的学情档案。您可以随时向我提问课程任何疑问，或输入“再来一题”进行常规随堂练习。")
+    
+    return "\n".join(lines), sources
+
+
 def is_learning_diagnosis_intent(question: str, mode: str) -> bool:
     if mode == "learning_diagnosis":
         return True
@@ -570,9 +708,10 @@ def is_learning_diagnosis_intent(question: str, mode: str) -> bool:
         "学情诊断", "学情分析", "学情检验", "学情评估", "学情报告", "学情汇报",
         "错题归因", "错题复盘", "我的错题", "错题分析",
         "做题记录", "我的做题", "我的成绩", "我的学情", "学情概况",
-        "学情复盘", "知识掌握情况", "查看学情", "诊断学情"
+        "学情复盘", "知识掌握情况", "查看学情", "诊断学情", "开始诊断", "进行学情诊断", "测试学情"
     ]
     return any(k in q for k in specific_keywords)
+
 
 
 VALID_COURSEWARE_WHITELIST: set[str] = {
@@ -647,9 +786,13 @@ class SessionTeachingState:
     def __init__(self, uid: str, session_id: str):
         self.uid = uid
         self.session_id = session_id
-        self.scene_mode = 0  # 0: 常规QA, 1: 师傅情景演练, 2: 主讲名师情景演练, 3: 随堂测验模式
-        self.scene_role_name = ""  # "储能电站现场运维师傅" | "《电力系统储能技术》主讲老师"
+        self.scene_mode = 0  # 0: 常规QA, 1: 师傅情景演练, 2: 主讲名师情景演练, 3: 随堂测验模式, 4: 互动学情诊断模式
+        self.scene_role_name = ""  # "储能电站现场运维师傅" | "《电力系统储能技术》主讲老师" | "互动学情诊断测评"
         self.current_quiz: dict[str, Any] | None = None
+        self.diag_active: bool = False
+        self.diag_step: int = 0
+        self.diag_total: int = 3
+        self.diag_records: list[dict[str, Any]] = []
         self.last_active_time = time.monotonic()
         self.lock = asyncio.Lock()
 
@@ -671,6 +814,10 @@ class TeachingStateManager:
                     state.current_quiz = None
                     state.scene_mode = 0
                     state.scene_role_name = ""
+                    state.diag_active = False
+                    state.diag_step = 0
+                    state.diag_total = 3
+                    state.diag_records = []
                 state.last_active_time = now
                 return state
             if len(self._states) >= self.max_sessions:
@@ -700,6 +847,60 @@ class TeachingStateManager:
             state.scene_role_name = role_name
             if scene_mode == 0:
                 state.current_quiz = None
+            if scene_mode in (1, 2):
+                state.diag_active = False
+                state.diag_step = 0
+                state.diag_records = []
+
+    async def start_diagnosis(self, uid: str, session_id: str, first_quiz: dict[str, Any]) -> SessionTeachingState:
+        state = await self.get_or_create(uid, session_id)
+        async with state.lock:
+            state.diag_active = True
+            state.diag_step = 1
+            state.diag_total = 3
+            state.diag_records = []
+            state.current_quiz = first_quiz
+            state.scene_mode = 4
+            state.scene_role_name = "互动学情诊断测评"
+            return state
+
+    async def advance_diagnosis(self, uid: str, session_id: str, record: dict[str, Any], next_quiz: dict[str, Any] | None) -> tuple[int, int]:
+        state = await self.get_or_create(uid, session_id)
+        async with state.lock:
+            state.diag_records.append(record)
+            if next_quiz:
+                state.diag_step += 1
+                state.current_quiz = next_quiz
+                state.scene_mode = 4
+                state.scene_role_name = "互动学情诊断测评"
+            return state.diag_step, state.diag_total
+
+    async def finish_diagnosis(self, uid: str, session_id: str, final_record: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        state = await self.get_or_create(uid, session_id)
+        async with state.lock:
+            if final_record:
+                state.diag_records.append(final_record)
+            records = list(state.diag_records)
+            state.diag_active = False
+            state.diag_step = 0
+            state.diag_total = 3
+            state.diag_records = []
+            state.current_quiz = None
+            state.scene_mode = 0
+            state.scene_role_name = ""
+            return records
+
+    async def stop_diagnosis(self, uid: str, session_id: str) -> None:
+        state = await self.get_or_create(uid, session_id)
+        async with state.lock:
+            state.diag_active = False
+            state.diag_step = 0
+            state.diag_total = 3
+            state.diag_records = []
+            state.current_quiz = None
+            if state.scene_mode == 4:
+                state.scene_mode = 0
+                state.scene_role_name = ""
 
 
 teaching_state_manager = TeachingStateManager()
@@ -716,32 +917,46 @@ def classify_workflow_intent(
     
     q = str(question or "").strip()
     
-    # 2. Scenario roleplay control
+    # 2. Scenario roleplay stop
     if any(k in q for k in ["退出情景演绎", "结束情景演绎", "停止情景演绎", "退出演练", "不扮演了", "退出角色扮演", "结束角色扮演"]):
         return "scenario_stop"
+        
+    # 3. Diagnosis stop (explicit exit from interactive diagnosis)
+    if any(k in q for k in ["退出诊断", "结束诊断", "停止诊断", "不诊断了", "退出学情诊断", "结束学情诊断"]):
+        return "diagnosis_stop"
+
+    # 4. If currently in interactive diagnosis mode:
+    if current_state and getattr(current_state, "diag_active", False):
+        if extract_and_normalize_answer(q) is not None:
+            return "diagnosis_submit"
+        # If user sends something while in diagnosis mode, route to diagnosis_submit so it guides them without breaking step
+        return "diagnosis_submit"
+
+    # 5. Scenario start
     if any(k in q for k in ["扮演老师", "扮演主讲老师", "名师授课", "名师情景", "主讲老师授课", "老师授课方式"]):
         return "scenario_start_teacher"
     if any(k in q for k in ["扮演师傅", "扮演运维师傅", "扮演工程师", "电厂师傅", "现场师傅", "运维师傅情景", "电厂运维师傅"]):
         return "scenario_start_engineer"
     
-    # 3. Quiz control (check stop before generate to avoid substring collision on '出题')
+    # 6. Diagnosis start
+    if is_learning_diagnosis_intent(q, "qa") or any(k in q for k in ["进行学情诊断", "学情诊断", "开始学情诊断", "帮我做一下学情诊断", "我的学情", "诊断学情", "测试学情", "开始诊断"]):
+        return "diagnosis_start"
+
+    # 7. Single quiz control
     if any(k in q for k in ["停止出题", "不练了", "不做了", "停止练习", "结束测验", "退出测验", "停止随堂"]):
         return "quiz_stop"
     if any(k in q for k in ["出一道题", "出题", "考考我", "做道题", "随堂练习", "再来一题", "测验", "来一道题", "出题测验", "随堂测试"]):
         return "quiz_generate"
         
-    # 4. Active quiz answering (or isolated option answering when empty)
+    # 8. Single quiz submit
     if extract_and_normalize_answer(q) is not None:
         if current_state and current_state.current_quiz:
             return "quiz_submit"
         elif len(q) <= 6:
             return "quiz_submit"
             
-    # 5. Learning diagnosis
-    if is_learning_diagnosis_intent(q, "qa"):
-        return "learning_diagnosis"
-        
     return "general_qa"
+
 
 
 def extract_quiz_meta_fallback(full_text: str) -> dict[str, Any]:
@@ -2768,6 +2983,131 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     await asyncio.sleep(0.01)
                 yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'scenario_stopped'}, ensure_ascii=False)}\n\n".encode("utf-8")
                 return
+
+            # 2. Diagnosis stop branch
+            if workflow_intent == "diagnosis_stop":
+                await teaching_state_manager.stop_diagnosis(identity.uid, str(client_sess))
+                yield f"event: session_state\ndata: {json.dumps({'scene_mode': 0, 'scene_role_name': ''}, ensure_ascii=False)}\n\n".encode("utf-8")
+                stop_txt = "好的，已为您退出学情诊断测评。您可以随时向我提问《电力系统储能技术》课程的任何知识点，或随时再次输入“进行学情诊断”开启测评。"
+                for i in range(0, len(stop_txt), 25):
+                    yield f"event: token\ndata: {json.dumps({'text': stop_txt[i:i+25], 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    await asyncio.sleep(0.01)
+                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'diagnosis_stopped'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                return
+
+            # 3. Diagnosis start branch
+            if workflow_intent == "diagnosis_start":
+                first_quiz = DIAGNOSTIC_QUESTION_BANK[0]
+                await teaching_state_manager.start_diagnosis(identity.uid, str(client_sess), first_quiz)
+                yield f"event: session_state\ndata: {json.dumps({'scene_mode': 4, 'scene_title': '互动学情诊断测评 (1/3)', 'scene_role_name': '互动学情诊断测评'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                
+                intro_lines = [
+                    "【学情诊断测评】已为您启动《电力系统储能技术》多维互动诊断测评。",
+                    "本次测评共包含 3 道典型考点试题，将覆盖基础原理、控制机理与系统规划配置。",
+                    "请阅读并作答第 1 题（支持直接点击选项卡或键盘输入 A/B/C/D）：",
+                    "",
+                    first_quiz["stem"]
+                ]
+                intro_text = "\n".join(intro_lines)
+                for i in range(0, len(intro_text), 30):
+                    yield f"event: token\ndata: {json.dumps({'text': intro_text[i:i+30], 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    await asyncio.sleep(0.01)
+                
+                quiz_meta_payload = {
+                    "stem": first_quiz["stem"],
+                    "options": first_quiz["options"],
+                    "correct_answer": first_quiz["correct_answer"],
+                    "explanation": first_quiz["explanation"],
+                    "courseware": first_quiz["courseware"],
+                    "knowledge_point": first_quiz["knowledge_point"]
+                }
+                yield f"event: quiz_meta\ndata: {json.dumps(quiz_meta_payload, ensure_ascii=False)}\n\n".encode("utf-8")
+                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'diagnosis_question_served'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                return
+
+            # 4. Diagnosis submit branch
+            if workflow_intent == "diagnosis_submit":
+                st = await teaching_state_manager.get_or_create(identity.uid, str(client_sess))
+                current_quiz = st.current_quiz or DIAGNOSTIC_QUESTION_BANK[max(0, min(st.diag_step - 1, 2))]
+                norm_ans = extract_and_normalize_answer(question)
+                if not norm_ans:
+                    guidance_txt = f"【学情诊断测评进行中（第 {st.diag_step}/3 题）】请点击上方 A / B / C / D 选项卡或输入对应选项字母完成作答。若需退出，可回复“退出诊断”。"
+                    yield f"event: token\ndata: {json.dumps({'text': guidance_txt, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    quiz_meta_payload = {
+                        "stem": current_quiz["stem"],
+                        "options": current_quiz.get("options", {}),
+                        "correct_answer": current_quiz["correct_answer"],
+                        "explanation": current_quiz["explanation"],
+                        "courseware": current_quiz["courseware"],
+                        "knowledge_point": current_quiz["knowledge_point"]
+                    }
+                    yield f"event: quiz_meta\ndata: {json.dumps(quiz_meta_payload, ensure_ascii=False)}\n\n".encode("utf-8")
+                    yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'diagnosis_guidance_prompted'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    return
+
+                correct_ans = str(current_quiz.get("correct_answer", "B")).upper()
+                is_correct = (norm_ans == correct_ans)
+                record = {
+                    **current_quiz,
+                    "user_answer": norm_ans,
+                    "is_correct": is_correct
+                }
+
+                # Formative grade record emission
+                cw = str(current_quiz.get("courseware", "")).strip()
+                cw_file = cw.split(" P")[0].strip() if " P" in cw else "3.4 储能变流器拓扑及并网控制.pdf"
+                cw_page = cw.split(" P")[1].strip() if " P" in cw else "12"
+                grade_payload = {
+                    "source_task": f"学情诊断测验 (第{st.diag_step}题)",
+                    "stem": current_quiz.get("stem", "学情诊断测验"),
+                    "student_answer": norm_ans,
+                    "correct_answer": correct_ans,
+                    "is_correct": is_correct,
+                    "earned_score": 10 if is_correct else 0,
+                    "max_score": 10,
+                    "knowledge_point": current_quiz.get("knowledge_point", "储能核心考点"),
+                    "courseware": f"{cw_file} P{cw_page}"
+                }
+                yield f"event: quiz_graded\ndata: {json.dumps(grade_payload, ensure_ascii=False)}\n\n".encode("utf-8")
+
+                curr_step = st.diag_step
+                if curr_step < 3:
+                    next_step = curr_step + 1
+                    next_quiz = DIAGNOSTIC_QUESTION_BANK[next_step - 1]
+                    await teaching_state_manager.advance_diagnosis(identity.uid, str(client_sess), record, next_quiz)
+                    yield f"event: session_state\ndata: {json.dumps({'scene_mode': 4, 'scene_title': f'互动学情诊断测评 ({next_step}/3)', 'scene_role_name': '互动学情诊断测评'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    
+                    receipt_text = f"第 {curr_step} 题作答已记录（您的选择：`{norm_ans}`）。\n\n接下来请作答第 {next_step}/3 题：\n\n{next_quiz['stem']}"
+                    for i in range(0, len(receipt_text), 30):
+                        yield f"event: token\ndata: {json.dumps({'text': receipt_text[i:i+30], 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                        await asyncio.sleep(0.01)
+                    
+                    next_quiz_meta = {
+                        "stem": next_quiz["stem"],
+                        "options": next_quiz["options"],
+                        "correct_answer": next_quiz["correct_answer"],
+                        "explanation": next_quiz["explanation"],
+                        "courseware": next_quiz["courseware"],
+                        "knowledge_point": next_quiz["knowledge_point"]
+                    }
+                    yield f"event: quiz_meta\ndata: {json.dumps(next_quiz_meta, ensure_ascii=False)}\n\n".encode("utf-8")
+                    yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'diagnosis_question_served'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    return
+                else:
+                    # Final question completed! Finish diagnosis and generate report
+                    all_records = await teaching_state_manager.finish_diagnosis(identity.uid, str(client_sess), record)
+                    yield f"event: session_state\ndata: {json.dumps({'scene_mode': 0, 'scene_role_name': ''}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    
+                    report_text, report_sources = build_interactive_diagnosis_report(all_records)
+                    for i in range(0, len(report_text), 35):
+                        yield f"event: token\ndata: {json.dumps({'text': report_text[i:i+35], 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                        await asyncio.sleep(0.01)
+                    
+                    for src in report_sources:
+                        yield f"event: source\ndata: {json.dumps({**src, 'request_id': request_id, 'evidence_type': 'diagnosis_evidence'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    
+                    yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'interactive_diagnosis_completed'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    return
 
             # 4. Scenario start branches
             if workflow_intent == "scenario_start_engineer":

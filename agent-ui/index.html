@@ -3410,16 +3410,16 @@
                 <div class="chat-bottom-dock">
                   <!-- Active Scenario Roleplay Status Banner -->
                   <div class="scenario-status-banner" id="scenarioStatusBanner" style="display: none;">
-                    <span class="scenario-banner-tag">情景演练进行中</span>
+                    <span class="scenario-banner-tag" id="scenarioBannerTag">情景演练进行中</span>
                     <span class="scenario-banner-text" id="scenarioBannerText">当前角色：储能电站现场运维师傅</span>
-                    <button class="scenario-exit-btn" onclick="askFollowupPrompt('退出情景演绎')">退出演练</button>
+                    <button class="scenario-exit-btn" id="scenarioExitBtn" onclick="handleScenarioOrDiagExit()">退出演练</button>
                   </div>
 
                   <div class="chat-dock-chips" id="chatFollowupChips">
                     <button class="chat-dock-chip" onclick="askFollowupPrompt('出一道单选题考考我')">[ 随堂出题测试 ]</button>
                     <button class="chat-dock-chip" onclick="askFollowupPrompt('扮演储能电厂运维师傅与我对话')">[ 师傅情景演练 ]</button>
                     <button class="chat-dock-chip" onclick="askFollowupPrompt('扮演课程主讲老师与我对话')">[ 名师情景演练 ]</button>
-                    <button class="chat-dock-chip" style="background: rgba(5,150,105,0.12); color: var(--brand-green); font-weight: 600;" onclick="askFollowupPrompt('请根据我的全部做题记录与作业表现，进行全面学情诊断与错题归因分析')">[ 学情诊断复盘 ]</button>
+                    <button class="chat-dock-chip" style="background: rgba(5,150,105,0.12); color: var(--brand-green); font-weight: 600;" onclick="askFollowupPrompt('进行学情诊断')">[ 互动学情诊断 ]</button>
                   </div>
 
                   <!-- Input Attached Quote Capsule -->
@@ -3428,7 +3428,7 @@
                       <span class="quoted-bar-badge">已引用划线内容</span>
                       <span class="quoted-bar-text" id="chatQuotedTextSnippet"></span>
                     </div>
-                    <button class="quoted-bar-close" onclick="removeAttachedQuote()" title="取消引用">✕</button>
+                    <button class="quoted-bar-close" onclick="removeAttachedQuote()" title="取消引用">&times;</button>
                   </div>
 
                   <div class="chat-input-row">
@@ -8170,10 +8170,19 @@ JSON 输出格式如下：
       if (e.key === "Escape") {
         const banner = document.getElementById("scenarioStatusBanner");
         if (banner && banner.style.display !== "none") {
-          askFollowupPrompt("退出情景演绎");
+          handleScenarioOrDiagExit();
         }
       }
     });
+
+    function handleScenarioOrDiagExit() {
+      const banner = document.getElementById("scenarioStatusBanner");
+      if (banner && banner.dataset.sceneMode === "4") {
+        askFollowupPrompt("退出诊断");
+      } else {
+        askFollowupPrompt("退出情景演绎");
+      }
+    }
 
     function recordInteractiveQuizResult(stem, options, studentAnswer, correctAnswer, isCorrect, explanation, courseware) {
       window.interactiveChatQuizHistory.push({
@@ -8493,13 +8502,25 @@ JSON 输出格式如下：
                 const dataObj = JSON.parse(rawData);
                 if (currentEvent === "session_state") {
                   const banner = document.getElementById("scenarioStatusBanner");
+                  const bannerTag = document.getElementById("scenarioBannerTag");
+                  const txt = document.getElementById("scenarioBannerText");
+                  const exitBtn = document.getElementById("scenarioExitBtn");
                   if (banner) {
                     if (dataObj.scene_mode === 1 || dataObj.scene_mode === 2) {
                       banner.style.display = "flex";
-                      const txt = document.getElementById("scenarioBannerText");
+                      banner.dataset.sceneMode = String(dataObj.scene_mode);
+                      if (bannerTag) bannerTag.textContent = "情景演练进行中";
                       if (txt) txt.textContent = `当前角色：${dataObj.scene_role_name || '情景演练'}`;
+                      if (exitBtn) exitBtn.textContent = "退出演练";
+                    } else if (dataObj.scene_mode === 4) {
+                      banner.style.display = "flex";
+                      banner.dataset.sceneMode = "4";
+                      if (bannerTag) bannerTag.textContent = "互动学情诊断";
+                      if (txt) txt.textContent = `${dataObj.scene_title || '互动学情诊断测评进行中'}`;
+                      if (exitBtn) exitBtn.textContent = "退出诊断";
                     } else {
                       banner.style.display = "none";
+                      banner.dataset.sceneMode = "0";
                     }
                   }
                 } else if (currentEvent === "quiz_meta") {

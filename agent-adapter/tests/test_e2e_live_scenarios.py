@@ -224,5 +224,68 @@ class TestWorkflowE2ELive(unittest.TestCase):
             self.assertIn("针对您引用的虚拟同步机下垂方程解析如下", resp.text)
             print("Scenario 7 (Quoted Text Precedence): PASS")
 
+    def test_08_interactive_diagnosis_e2e_full_flow(self):
+        """Scenario 8: Multi-step interactive diagnosis from Q1 -> Q2 -> Q3 -> Comprehensive Report"""
+        session_id = "test_sess_e2e_08_diag"
+        client = TestClient(app)
+
+        # 1. Start diagnosis
+        resp1 = client.post(
+            "/api/course-agent/chat",
+            headers=HEADERS,
+            json={"question": "进行学情诊断", "session_id": session_id, "mode": "qa"}
+        )
+        self.assertEqual(resp1.status_code, 200)
+        self.assertIn("【学情诊断测评】", resp1.text)
+        self.assertIn("【学情诊断测评 第 1/3 题 - 基础原理与应用】", resp1.text)
+        self.assertIn('"scene_mode": 4', resp1.text)
+        self.assertIn('"correct_answer": "B"', resp1.text)
+
+        # 2. Answer Question 1 (B - correct)
+        resp2 = client.post(
+            "/api/course-agent/chat",
+            headers=HEADERS,
+            json={"question": "B", "session_id": session_id, "mode": "qa"}
+        )
+        self.assertEqual(resp2.status_code, 200)
+        self.assertIn("第 1 题作答已记录", resp2.text)
+        self.assertIn("【学情诊断测评 第 2/3 题 - 变流器控制机理】", resp2.text)
+        self.assertIn('"is_correct": true', resp2.text)
+        self.assertIn('"scene_mode": 4', resp2.text)
+
+        # 3. Answer Question 2 (A - wrong)
+        resp3 = client.post(
+            "/api/course-agent/chat",
+            headers=HEADERS,
+            json={"question": "我选A", "session_id": session_id, "mode": "qa"}
+        )
+        self.assertEqual(resp3.status_code, 200)
+        self.assertIn("第 2 题作答已记录", resp3.text)
+        self.assertIn("【学情诊断测评 第 3/3 题 - 规划配置与综合评估】", resp3.text)
+        self.assertIn('"is_correct": false', resp3.text)
+
+        # 4. Answer Question 3 (C - correct) -> Triggers Final Diagnosis Synthesis
+        resp4 = client.post(
+            "/api/course-agent/chat",
+            headers=HEADERS,
+            json={"question": "C", "session_id": session_id, "mode": "qa"}
+        )
+        self.assertEqual(resp4.status_code, 200)
+        full_text4 = "".join([
+            json.loads(line.replace("data:", "").strip()).get("text", "")
+            for line in resp4.text.split("\n")
+            if line.startswith("data:") and '"text"' in line
+        ])
+        self.assertIn("《电力系统储能技术》学情诊断综合报告", full_text4)
+        self.assertIn("总测评题数**：3 题", full_text4)
+        self.assertIn("正确作答数**：2 题", full_text4)
+        self.assertIn("66.7%", full_text4)
+        self.assertIn("错题考点：3.4 储能变流器拓扑及并网控制", full_text4)
+        self.assertIn("专属靶向复习路径与课件直达推荐", full_text4)
+        self.assertIn('"scene_mode": 0', resp4.text)
+        self.assertIn('"reason": "interactive_diagnosis_completed"', resp4.text)
+        print("Scenario 8 (Interactive Diagnosis 3-Step Flow & Report): PASS")
+
+
 if __name__ == "__main__":
     unittest.main()
