@@ -1,0 +1,71 @@
+# Environment and secret configuration
+.env*
+deploy/.env*
+!deploy/.env.example
+
+# Course raw materials and normalized PDF binaries
+course-data/*
+!course-data/.gitkeep
+!course-data/normalized/
+course-data/normalized/*.pdf
+!course-data/normalized/manifest.json
+!course-data/normalized/graph-baseline.json
+
+# Caches and runtime artifacts
+reports/
+output/
+tmp/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+scripts/sample_pdf_b64.txt
+
+# Original teaching files and registration material stay out of the source
+# repository; the normalized manifest and source metadata are already tracked
+# where the deployment and reproducibility checks expect them.
+/参赛题目.docx
+/教材课件分章节pdf版.zip
+/电力系统储能技术 知识图谱.xlsx
+/揭榜挂帅报名表(盖章版).pdf
+
+# Server-only backup and release state must never be pushed to GitHub.
+/backups/
+/05-作品代码/*.tar.gz
+
+# AI Assistant, Agent framework & IDE metadata
+.agent/
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.trellis/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Competition submission folders (kept local, only platform user manual is synced)
+/01-参赛信息/
+/02-伦理与安全合规性声明/
+/03-作品Demo/
+/04-作品方案/
+/05-作品代码/
+/06-效果验证报告/
+/07-其他材料/README.md
+
+
+
+
+# Runtime backups and throw-away sync areas (contain DB dumps and data snapshots)
+backups/
+tmp-sync/
+acceptance/test-reports/manual/raw/
+
+# macOS resource forks
+._*
+.DS_Store
+
+# Derived courseware page images (regenerable from course-data, served by nginx)
+agent-ui/slides/

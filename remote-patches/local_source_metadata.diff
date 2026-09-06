@@ -1,0 +1,8 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -390,3 +390,4 @@
+     version_name = str((version or {}).get("version_name") or MANIFEST.get("source_archive", "course-local"))
+     version_id = str((version or {}).get("id") or "local-manifest")
+-    return result.prompt_context, result.sources(version_name, version_id)
++    manifest_by_source = {str(item.get("source_file")): item for item in MANIFEST.get("files", []) if isinstance(item, dict)}
++    return result.prompt_context, result.sources(version_name, version_id, manifest_by_source)

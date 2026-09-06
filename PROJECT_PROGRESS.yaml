@@ -1,0 +1,847 @@
+version: 2
+project: EnergyGraph-AI
+product: 学习通式电力系统储能技术课程平台
+project_root: /home/registrar/桌面/EnergyGraph-AI
+updated_at: 2026-08-10T16:05:00+08:00
+timezone: Asia/Shanghai
+
+plan:
+  file: XUEXITONG_STYLE_FRONTEND_PLAN_V2.md
+  revision: V2
+  latest_reviewed_section: 150
+  acceptance_rule: 构筑审查、自动化测试、权限安全、浏览器验收和证据归档全部通过后才允许标记 PASS
+
+history:
+  file: PROJECT_PROGRESS_HISTORY_20260729.yaml
+  sha256: a00ad2c087fafde0f5b3019704714440210d1f86f8f80b232ec1e988ddecb3cc
+  role: immutable_full_ledger_before_conversation_migration
+  test_runs_count: 123
+  known_blockers_count: 28
+  note: 主文件只保留当前权威状态；验证器从本归档合并 test_runs 和 known_blockers，不允许归档旧 status 覆盖当前状态
+
+snapshot:
+  date: 2026-07-29
+  branch: main
+  baseline_commit: 7efb8f78372ea7cb31fa950fe5ec6165096c882e
+  working_tree:
+    inventory_note: 工作树包含大量用户和既有未提交改动；不得回退、覆盖或清理无关文件
+    observed_git_status:
+      captured_by: git status --short
+      tracked_modified_count: 36
+      untracked_count: 51
+      total_count: 87
+    secret_files:
+      - path: .env.test.local
+        status: local_only_ignored
+        permission: 600
+        values_recorded: false
+
+status:
+  overall: in_progress
+  current_gate: BUILD-000
+  current_gate_status: BLOCKED_INPUT
+  latest_product_build: BUILD-122-DISCUSSION-PAGINATION-20260810-01
+  latest_plan_audit: PLAN-TEST-AUDIT-20260810-66
+  active_increment: BUILD-122 discussion list pagination
+  active_increment_status: VERIFIED_LOCAL_IMPLEMENTED_PENDING_GATE
+  final_release: BLOCKED
+  note: BUILD-122 讨论列表分页纯前端增量本地实现与验证全部完成（run BUILD-122-DISCUSSION-PAGINATION-20260810-01，loadDiscussions 携带 query/page/page_size 复用既有 /api/discussions 契约返回 { items, total }，DiscussionsPage 每页 8 条 + course-pagination 导航 + 搜索重置页码 + loadSequence 竞态守卫，单页隐藏导航，Vitest 176/176，a11y 6/6，axe 4/4，smoke 2/2，screenshots 1/1 六视口，mock e2e 56/56，主包 300.78 kB）；真实 API 依赖项保持 PARKED（见 parked_items），剩余为外部门禁与提交材料
+
+parked_items:
+  - id: REAL-KB-RELEASE-20260806-01
+    classification: REAL_WORKFLOW_KB_PUBLISH
+    status: PARKED_EXTERNAL_BLOCKED
+    blocker: 真实工作流未输出 [来源文件...] 引用标记（连续三轮目标轮次确认 marker_count=0）
+    required_user_action: 讯飞星辰控制台为工作流配置知识库检索节点并让回答输出引用标记
+    resume_command: python3 scripts/kb_release.py（版本已绑定 workflow_id、20 份 PDF 已入库，无需重传）
+    parked_at: 2026-08-06
+    note: 发布成功前真实聊天 E2E 同样 PARKED（未发布知识库时 xingchen_stream 正确阻断）
+  - id: REAL-CHAT-E2E-20260806
+    classification: REAL_CHAT_E2E
+    status: PARKED_EXTERNAL_BLOCKED
+    blocker: 依赖 REAL-KB-RELEASE-20260806-01 发布成功
+    resume_order: 发布后运行真实聊天 E2E（token/source/done 事件验收）
+
+gates:
+  - id: BUILD-000
+    name: 输入、环境和正式验收前置门禁
+    status: BLOCKED_INPUT
+    evidence: acceptance/frontend/BUILD-000/ and PROJECT_PROGRESS_HISTORY_20260729.yaml
+
+build_statuses:
+  BUILD-000: BLOCKED_INPUT
+  BUILD-010: IMPLEMENTED_PENDING_GATE
+  BUILD-020: IMPLEMENTED_PENDING_GATE
+  BUILD-030: IMPLEMENTED_PENDING_GATE
+  BUILD-040: IMPLEMENTED_PENDING_GATE
+  BUILD-050: IMPLEMENTED_PENDING_GATE
+  BUILD-060: IMPLEMENTED_PENDING_GATE
+  BUILD-070: IMPLEMENTED_PENDING_GATE
+  BUILD-080: IMPLEMENTED_PENDING_GATE
+  BUILD-090: IMPLEMENTED_PENDING_GATE_WITH_OPEN_P0
+  BUILD-100: IMPLEMENTED_PENDING_GATE
+  BUILD-110: IMPLEMENTED_PENDING_GATE
+  BUILD-111: IMPLEMENTED_PENDING_GATE
+  BUILD-112: IMPLEMENTED_PENDING_GATE
+  BUILD-113: IMPLEMENTED_PENDING_GATE
+  BUILD-114: IMPLEMENTED_PENDING_GATE
+  BUILD-115: IMPLEMENTED_PENDING_GATE
+  BUILD-116: IMPLEMENTED_PENDING_GATE
+  BUILD-117: IMPLEMENTED_PENDING_GATE
+  BUILD-118: IMPLEMENTED_PENDING_GATE
+  BUILD-119: IMPLEMENTED_PENDING_GATE
+  BUILD-120: IMPLEMENTED_PENDING_GATE
+  BUILD-121: IMPLEMENTED_PENDING_GATE
+  BUILD-122: IMPLEMENTED_PENDING_GATE
+
+authoritative_completed_state:
+  product_run:
+    id: BUILD-122-DISCUSSION-PAGINATION-20260810-01
+    attempt: 1
+    scope: 讨论列表分页：loadDiscussions(query, page=1, pageSize=8) 复用 /api/discussions 分页契约（query/page/page_size → { items, total }）；DiscussionsPage 每页 8 条、course-pagination 导航（上一页/下一页 + 第 N / M 页共 X 条、首末页禁用）、计数标签用服务端 total、搜索变化重置页码、loadSequence 竞态守卫；client.test.ts 更新契约断言 + App.test.tsx 组件用例（12 条 fixture 翻页/重置）+ mock-api.spec.ts 第 56 用例（真实 Chrome）；五个浏览器套件全量回归（a11y 6/6、axe 4/4、smoke 2/2、screenshots 1/1 六视口、mock e2e 56/56）
+    status: IMPLEMENTED_PENDING_GATE
+    evidence:
+      - acceptance/frontend/BUILD-122/metadata.json
+      - acceptance/frontend/BUILD-122/scope.md
+      - acceptance/frontend/BUILD-122/review.md
+      - acceptance/frontend/BUILD-122/test-output.txt
+      - acceptance/frontend/BUILD-122/manual-acceptance.md
+      - acceptance/frontend/BUILD-122/rollback.md
+  plan_audit:
+    id: PLAN-TEST-AUDIT-20260810-66
+    status: DOCUMENTED_AND_REVIEWED_WITH_EXTERNAL_GATES_OPEN
+    evidence:
+      - acceptance/frontend/BUILD-000/plan-test-audit-20260810-66.txt
+      - XUEXITONG_STYLE_FRONTEND_PLAN_V2.md section 150
+  last_verified_results:
+    targeted_vitest: PASS_CLIENT_47_COMPONENT_SEARCH_3
+    full_vitest: PASS_176_OF_176
+    course_store: PASS_20_OF_20
+    adapter_runtime: PASS_15_OF_15
+    kb_release_driver: PASS_10_OF_10
+    backend_scripts: PASS_LOCAL_ACCEPTANCE_OK
+    api_contract: PASS_113_ROUTES
+    local_openapi: PASS_112_PATHS
+    global_search_api: PASS_ROLES_3_KINDS_7_PAGINATION_ARCHIVED_ISOLATION
+    course_data_baseline: PASS_20_PDFS_439_PAGES
+    mock_browser: PASS_56_OF_56
+    a11y_browser: PASS_6_OF_6
+    axe_browser: PASS_4_OF_4
+    smoke_browser: PASS_2_OF_2
+    screenshots_browser: PASS_1_OF_1_SIX_VIEWPORTS
+    progress_validator: PASS_METADATA_24_BLOCKERS_28_EVIDENCE_REFS_241_REDACTION
+
+latest_frontend_revalidation:
+  date: 2026-08-10
+  build: BUILD-122
+  run_id: BUILD-122-DISCUSSION-PAGINATION-20260810-01
+  status: IMPLEMENTED_PENDING_GATE
+  results:
+    full_vitest: PASS_176_OF_176
+    frontend_lint: PASS
+    frontend_typecheck: PASS
+    frontend_build: PASS_MAIN_BUNDLE_300_68_KB_ROUTE_LEVEL_CHUNKS_UNCHANGED
+    a11y_browser: PASS_6_OF_6
+    mock_browser: PASS_56_OF_56
+    axe_browser: PASS_4_OF_4
+    smoke_browser: PASS_2_OF_2
+    screenshots_browser: PASS_1_OF_1_SIX_VIEWPORTS
+    resource_filter_component_tests: PASS_1_OF_1
+    search_keyboard_component_tests: PASS_1_OF_1
+    table_aria_component_tests: PASS_1_OF_1
+    gradebook_csv_component_tests: PASS_1_OF_1
+    discussion_pagination_component_tests: PASS_1_OF_1
+  open_release_gates:
+    - 真实 Moodle API/pluginfile、多课程三角色和六视口人工验收
+    - 真实工作流知识库发布（需工作流配置引用标记，REAL-KB-RELEASE-20260806-01）
+    - 正式 HTTPS/域名、备份恢复复核和提交材料（demo 录屏/人工验收汇总）
+    - 真实 HTTPS 下 Service Worker 注册/离线访问与跨设备同步（BUILD-110 T5）
+    - 真实 HTTPS/正式域名下安装弹窗与 SW 更新推送人工验收（BUILD-111 T5）
+    - 正式 axe 等价审查与真实辅助技术/六视口人工验收（BUILD-112 T5）
+
+real_workflow_kb_release_20260806:
+  id: REAL-KB-RELEASE-20260806-01
+  classification: SERVER_REAL_WORKFLOW_ATTEMPT
+  status: PARKED_EXTERNAL_BLOCKED (原 BLOCKED_WORKFLOW_CITATION_MARKERS)
+  parked: true
+  server: 139.196.45.2
+  version:
+    id: kb-b6cbd41439a14fb3a6ce62c8081280aa
+    name: 真实工作流版本-20260806
+    status: failed
+    source_count: 20
+    hit_status: failed
+    workflow_id: BOUND (len=19)
+    manifest_sha256: 2ae4acd137d30b67...
+  results:
+    login: LOGIN_OK
+    session_bridge: SESSION_OK course_id=1 role=admin
+    manifest_validation: MANIFEST_OK files=20 digest_match=true
+    pdf_upload: UPLOAD_OK files=20/20 (sha256 逐份一致)
+    golden_hit_tests: passed=0/3 (qa-001/002/003 全部 failed, 0 sources)
+  root_cause:
+    - 真实工作流可正常回答（code=0, finish_reason=stop, content 约 1378~2175 字符）
+    - 流式帧 content 与 reasoning_content 均无引用标记（[来源文件：...；页码：N]）
+    - 帧结构无独立 sources/references/citations 字段
+    - Adapter validate_sources() 只接受匹配 manifest 的显式标记，拒绝无来源证据
+    - 结论：工作流侧需配置知识库引用输出，非 Adapter 缺陷
+  required_workflow_contract:
+    marker: "[来源文件：<source_file>；章节：<章节全名>；页码：<N>]"
+    source_file_must_match: manifest source_file 字段（原始文件名）
+    chapter_must_match: manifest chapter 字段（逐字一致）
+    page_bounds: 1..page_count
+    golden_cases:
+      - qa-001 抽水蓄能电站组成/工作原理 -> 第3章 (source_file 前缀 "3.1 ")
+      - qa-002 储能变流器并网控制作用 -> 第3章 (source_file 前缀 "3.4 储能变流器")
+      - qa-003 电化学储能系统规划配置要点 -> 第4章 (source_file 前缀 "4.2 电化学")
+  resume_path:
+    - 工作流配置引用标记后: status processing -> 重跑 3 个黄金命中测试 -> tested -> published
+    - 20 份 PDF 已入库且哈希一致，无需重新上传
+    - 发布后重跑真实聊天 E2E（published_kb 为空时 xingchen_stream 不放行）
+  recheck_20260806_late:
+    workflow_probe: marker_count=0 (frames=2, content_len=1022, code_error=null)
+    blocker_status: 持续 BLOCKED_WORKFLOW_CITATION_MARKERS（需讯飞控制台配置）
+    chat_gate_verification: CHAT_GATE_OK（未发布 KB 时真实聊天返回 knowledge_base_not_published）
+    resume_script: scripts/kb_release.py（已固化；--check/--probe 服务器实测按设计安全失败）
+    resume_script_tests: PASS_10_OF_10
+    adapter_tests: PASS_15_OF_15
+    local_acceptance_suite: LOCAL_ACCEPTANCE_OK（含新增 KB release driver 步骤；performance p50=38.14ms）
+    submission_materials_check: SUBMISSION_MATERIALS_INCOMPLETE missing=3（demo 录屏/人工验收汇总/正式 HTTPS 域名，均为外部项）
+    blocker_audit: 连续三轮目标轮次确认同一阻断（工作流无引用标记）；其余关键路径（发布→聊天 E2E→Demo 录屏→人工验收）均依赖该外部配置，goal 标记 blocked，等待用户在讯飞星辰控制台配置
+  evidence:
+    - acceptance/frontend/BUILD-000/real-workflow-kb-20260806.txt
+    - acceptance/frontend/BUILD-000/real-workflow-recheck-and-gates-20260806.txt
+  forbidden_claims:
+    - 不得宣称知识库已发布或真实命中已通过（0/3）
+    - 不得以工作流能回答为由绕过来源门禁
+
+local_login_entry_maintenance:
+  id: LOGIN-ENTRY-LOCAL-20260730
+  classification: LOCAL_FRONTEND_MAINTENANCE_NOT_PRODUCT_RUN
+  status: IMPLEMENTED_LOCAL_NOT_DEPLOYED
+  scope:
+    - React 预览模式和会话过期状态增加 Moodle 登录入口
+    - 增加 Moodle 注册入口链接；不在前端收集或保存密码
+    - 静态 /demo 预览页顶栏增加登录和注册入口
+    - 登录回跳目标固定为 /learn/
+  changed_files:
+    - frontend/src/App.tsx
+    - frontend/src/App.test.tsx
+    - frontend/src/styles.css
+    - frontend/tests/demo-preview.spec.ts
+    - agent-ui/index.html
+  evidence:
+    - acceptance/frontend/LOGIN/login-entry-revalidation-20260730.txt
+  test_results:
+    typecheck: PASS
+    frontend_vitest: PASS_100_OF_100
+    frontend_lint: PASS
+    frontend_build: PASS_1857_MODULES
+    ui_contract: PASS
+    demo_materials: PASS
+    git_diff_check: PASS
+    demo_playwright: BLOCKED_TEST_INFRA_CHROME_SIGTRAP_BEFORE_ASSERTIONS
+  runtime_entry_points:
+    login: /login/index.php
+    signup: /login/signup.php
+    return_target: /learn/
+  blockers:
+    - 本次只完成本地代码和证据记录，尚未部署到 168.144.36.82
+    - Moodle 自助注册仍需服务器管理员配置；注册链接不会绕过 Moodle 配置
+    - 未声明真实账号、远端登录或真实认证浏览器验收通过
+  rollback: 删除上述五个文件中的本次登录/注册入口、样式和测试断言，保留其他用户及既有未提交改动
+
+deployment_revalidation:
+  latest_attempt:
+    id: DEPLOY-MATERIAL-MOUNT-DEMO-20260730-03
+    target: 168.144.36.82
+    attempted_at: 2026-07-30T18:34:33+08:00
+    status: DEPLOYED_MATERIAL_MOUNT_DEMO_PASS_FORMAL_GATES_OPEN
+    scope: 授权课程资料挂载、Moodle resource.php 权限修复、/demo 只读演示入口、Docker Compose 重建、health、同源 smoke、Moodle 登录 smoke 和服务器端契约验收
+    ssh:
+      user: root
+      batch_mode: AUTHENTICATED
+      local_agent: CONFIGURED
+      local_identity: CONFIGURED
+    network:
+      http_80: OBSERVED_REACHABLE_200
+      ssh_22: OBSERVED_REACHABLE
+      https_443: NOT_FORMALLY_ACCEPTED
+    remote_write: true
+    material_source: /home/registrar/揭榜挂帅/course-data/normalized
+    material_mount:
+      source_files: 20
+      source_sha256_matches: 20
+      source_page_count_matches: 20
+      source_pages: 439
+      remote_hash_matches: 20
+      remote_container_pdfs: 20
+      remote_container_pages: 439
+      remote_container_nodes: 20
+      remote_container_edges: 17
+      manifest_modified: false
+    demo:
+      public_path: /demo?preview=1
+      http_status: 200
+      browser_screenshot: acceptance/frontend/BUILD-000/demo-browser-desktop-20260730.png
+      resource_unauthenticated_status: 303_LOGIN_REDIRECT
+      resource_access_control_bypassed: false
+    evidence:
+      - acceptance/frontend/BUILD-000/material-mount-demo-revalidation-20260730-03.txt
+      - acceptance/frontend/BUILD-000/demo-browser-desktop-20260730.png
+      - acceptance/frontend/BUILD-000/deployment-revalidation-20260730-02.txt
+      - acceptance/frontend/BUILD-000/deployment-preflight-20260730-01.txt
+    blocker: 当前 checkout 仍无本地 manifest 匹配 PDF；授权资料源和服务器挂载已验证，但正式 Moodle/pluginfile、三角色、多课程、Workflow、HTTPS、备份恢复和提交材料门禁仍开放
+    rollback: 保留服务器 deploy/.env、数据库、moodledata、已挂载课程 PDF 和历史证据；如需回滚，恢复上一份审查过的项目树与 Compose 镜像，并移除本轮 /demo、权限修复和资料同步配置；本次未执行回滚
+    next_action: 使用服务器已挂载资料继续执行正式 Moodle/pluginfile、三角色、多课程和其余 T0-T6；不把预览截图或登录重定向当作正式 PDF 验收
+  status: DEPLOYED_MATERIAL_MOUNT_DEMO_PASS_FORMAL_GATES_OPEN
+
+new_server_deployment_20260806:
+  latest_attempt:
+    id: DEPLOY-ALIYUN-SH-139-20260806-01
+    target: 139.196.45.2
+    attempted_at: 2026-08-06T16:10:00+08:00
+    status: DEPLOYED_ALL_SERVICES_HEALTHY_SMOKE_LOGIN_SEARCH_PASS_PUBLIC_PORT_OPEN_REQUIRED
+    scope: 阿里云新服务器完整 Compose 部署（db/moodle/agent-adapter/agent-ui/frontend/caddy）、课程资料挂载、同源 smoke、真实 Moodle 登录、部署容器搜索 API 与契约验收
+    ssh:
+      user: root
+      batch_mode: AUTHENTICATED
+      local_agent: CONFIGURED
+      local_identity: CONFIGURED
+    host:
+      os: Ubuntu 24.04
+      cpu_ram_disk: 4C_7G_40G
+      docker: 29.1.3
+      compose: 2.40.3
+    network:
+      http_80_loopback: OBSERVED_REACHABLE_200
+      ssh_22: OBSERVED_REACHABLE
+      http_80_public: OBSERVED_REACHABLE_200_AFTER_SECURITY_GROUP_OPENED_20260806
+      https_443_public: BLOCKED_SECURITY_GROUP_443_NOT_OPENED
+      note: 用户在阿里云控制台放行 80 后公网可达；443 仍未放行，正式 HTTPS 域名门禁保持开放
+    image_sources:
+      - docker.1ms.run 镜像加速器（mariadb/caddy/php/python/nginx/node 基础镜像）
+      - gh-proxy.com GitHub 代理（Moodle MOODLE_405_STABLE 浅克隆，直连超时）
+      - mirrors.aliyun.com apt/pip 镜像
+      - registry.npmmirror.com npm 镜像
+    infrastructure_fixes:
+      - deploy/moodle/Dockerfile 新增 MOODLE_GIT_URL ARG，默认官方 URL，服务器 .env 指向 gh-proxy.com 代理
+      - deploy/docker-compose.yml moodle/agent-adapter/frontend build args 透传 MOODLE_GIT_URL/PIP_INDEX_URL/NPM_REGISTRY
+      - agent-adapter/Dockerfile 新增 PIP_INDEX_URL ARG（默认 pypi.org，服务器 .env 指向阿里云）
+      - frontend/Dockerfile 新增 NPM_REGISTRY ARG（默认 npmjs.org，服务器 .env 指向 npmmirror）
+      - deploy/moodle/docker-entrypoint.sh 在安装/种子后 chown -R www-data /var/www/html 与 moodledata；修复 install/seed 以 root 运行导致缓存目录 770 root 属主、Web 请求 500 cache_exception 的问题
+      - scripts/moodle_login_smoke.sh 回环模式增加 --resolve SITE_HOST:80:127.0.0.1；修复登录 303 跳转到公网绝对 URL 时 NAT 回环超时
+    services:
+      db: HEALTHY
+      moodle: HEALTHY
+      agent-adapter: HEALTHY
+      agent-ui: HEALTHY
+      frontend: HEALTHY
+      caddy: UP_80_443
+    course_material:
+      source: /home/registrar/揭榜挂帅/course-data/normalized
+      mounted_pdfs: 20
+      pages: 439
+      graph_nodes: 20
+      graph_edges: 17
+      moodle_seed: 6 章节 20 资源挂载完成
+    verification:
+      smoke_acceptance: PASS_SMOKE_ACCEPTANCE_PASSED
+      moodle_login_smoke: PASS_MOODLE_LOGIN_SMOKE_OK_path=/course/view.php?id=2_chapters=6_resources=20
+      global_search_api_container: PASS_GLOBAL_SEARCH_API_OK_roles=3_kinds=7_pagination_archived_isolation
+      api_contract: PASS_API_CONTRACT_OK_routes=113
+      local_openapi: PASS_LOCAL_OPENAPI_EXPORTED_paths=112
+      public_smoke_acceptance: PASS_SMOKE_ACCEPTANCE_PASSED_BASE_URL=http://139.196.45.2
+      public_moodle_login: PASS_MOODLE_LOGIN_SMOKE_OK_path=http://139.196.45.2/course/view.php?id=2_chapters=6_resources=20
+      public_demo_page: PASS_HTTP_200_103973_BYTES_含课程与AI助教内容
+    evidence:
+      - scripts/deploy_server.sh（同步与远端 up 流程）
+      - /opt/jbgs-course-agent 远端工作树（139.196.45.2）
+      - scripts/smoke_acceptance.sh
+      - scripts/moodle_login_smoke.sh
+      - scripts/test_global_search_api.py
+      - scripts/test_api_contract.py
+    rollback: 保留服务器 deploy/.env、数据库卷、moodledata 与课程资料；如需回滚重建镜像，删除本机三处 Dockerfile/entrypoint/登录脚本修复外的既有部署文件并重新 compose up；本次未执行回滚
+    next_action:
+      - 用户需在阿里云控制台安全组放行 80/443 后，公网 curl 与浏览器验收方可进行
+      - 放行后从本机重跑 smoke_acceptance.sh 与 moodle_login_smoke.sh（BASE_URL=http://139.196.45.2）
+      - 正式 Workflow、HTTPS、备份恢复和提交材料门禁仍开放
+
+task_center_time_fix_20260806:
+  id: TASK-CENTER-NOW-20260806
+  classification: LOCAL_BACKEND_FIX_VERIFIED_LOCALLY
+  status: IMPLEMENTED_LOCAL_VERIFIED_DEPLOYED_CONTAINER_PENDING_REAL_CLOCK_ACCEPTANCE
+  root_cause: /api/student/tasks 使用真实时钟，固定时间种子测试误判过期
+  fix:
+    - agent-adapter/app/main.py 的 /api/student/tasks 支持 TASK_CENTER_NOW 环境变量（仅 MOCK_AUTH_MODE=true 时允许；非法 ISO 返回 422）
+    - scripts/test_task_center_api.py 设置 os.environ["TASK_CENTER_NOW"]=NOW.isoformat()
+  test_results:
+    local_task_center: PASS（run_local_acceptance 内）
+  changed_files:
+    - agent-adapter/app/main.py
+    - scripts/test_task_center_api.py
+
+local_course_data_baseline_20260806:
+  status: UNBLOCKED
+  detail: 本地 course-data/normalized 已拷贝 20 份 PDF + manifest + graph-baseline.json（来源 /home/registrar/揭榜挂帅/course-data/normalized）
+  verification:
+    verify_course_data: PASS_pdfs=20_pages=439_nodes=20_edges=17
+
+local_acceptance_revalidation_20260806:
+  id: LOCAL-ACCEPTANCE-20260806
+  status: LOCAL_ACCEPTANCE_OK
+  run: bash scripts/run_local_acceptance.sh
+  results:
+    task_center_api: PASS_TASK_CENTER_API_OK_cases=four_kinds,user_state,deadlines,filters,pagination,counts,ordering,privacy,course_scope,role
+    kb_lifecycle: PASS_KB_LIFECYCLE_OK（此前 BLOCKED_INPUT_MISSING_chapter-1-1.1-.pdf，PDF 基线到位后解除）
+    adapter_runtime: PASS_ADAPTER_RUNTIME_OK
+    performance_mock: PASS_PERFORMANCE_MOCK_OK_samples=30_p50_ms=38.11_p95_ms=48.10
+    final: PASS_LOCAL_ACCEPTANCE_OK
+
+backup_gate_progress_20260806:
+  status: BACKUP_CRON_INSTALLED_BACKUP_VERIFIED_RESTORE_REHEARSALS_PASS
+  target: 139.196.45.2
+  cron: /etc/cron.d/jbgs-course-agent-backup（每天 03:17，root，输出 /var/log/jbgs-course-agent-backup.log）
+  backup_root: /var/backups/jbgs-course-agent
+  first_backup:
+    id: 20260806-154037
+    artifacts: mariadb.sql, moodledata.tar.gz, agent-data.tar.gz, caddy-data.tar.gz, caddy-config.tar.gz, course-data.tar.gz, application-source.tar.gz, SHA256SUMS
+    verify: PASS_BACKUP_VERIFY_OK（SHA256 全部 OK，无 .env/.key/.secret 归档成员）
+    restore_rehearsal: PASS_RESTORE_REHEARSAL_OK_course=1_users=2_agent_nodes=20_moodle_files=26
+    full_restore_rehearsal: PASS_FULL_RESTORE_REHEARSAL_OK_project=jbgs-restore-135397_course=1（隔离栈 db/moodle/agent-adapter/agent-ui/frontend/caddy 全部 healthy）
+  dependencies:
+    - alpine:3.20 经 docker.1ms.run 拉取并打标签（backup.sh 归档卷依赖）
+  note: 备份与恢复演练门禁已在新服务器闭环（备份→校验→数据级恢复→完整栈恢复）；HTTPS/公网浏览器验收仍待安全组放行与域名
+
+submission_gate_progress_20260806:
+  status: CODE_ARCHIVE_REFRESHED_DEMO_VIDEO_RECORDED_PRE_SUBMISSION_BLOCKED_2_EXTERNAL
+  code_archive:
+    refreshed_at: 2026-08-06
+    artifact: 05-作品代码/作品代码-源文件.tar.gz + .sha256（含今日 Dockerfile/entrypoint/登录脚本修复）
+    package: PASS_SUBMISSION_CODE_ARCHIVE_READY（允许列表打包，无 .env/.key/.secret 成员）
+  materials_check:
+    result: SUBMISSION_MATERIALS_INCOMPLETE_missing=2
+    missing:
+      - 03-作品Demo/demo-url.txt（已创建 http://139.196.45.2/demo?preview=1，但正式要求 HTTPS 域名；HTTP/IP 形式仍报缺失）
+      - 06-效果验证报告/真实人工验收汇总.md（需真实用户验收）
+  demo_video_20260806:
+    status: RECORDED_PUBLIC_SYSTEM_PREVIEW_MODE
+    artifact: 03-作品Demo/demo-video.mp4
+    duration_seconds: 15.6
+    container: MP4_H264_1280x720
+    recorder: frontend/scripts/record-demo-video.mjs（Playwright + Chrome headless + ffmpeg）
+    target: http://139.196.45.2（公网实际部署）
+    scenes:
+      - Demo 首页与课程视图
+      - AI 助教提问输入到输出闭环（预览示例回答，非真实工作流）
+      - /learn/ SPA 外壳
+      - Moodle 登录入口
+      - 390x844 移动端无横向溢出
+    boundary: 录屏为真实公网系统回放；AI 回答为预览模式，真实 KB 发布 PARKED 前不作为最终录屏
+    evidence:
+      - 03-作品Demo/demo-video.mp4
+      - frontend/scripts/record-demo-video.mjs
+  pre_submission_audit:
+    target: 139.196.45.2（PRE_SUBMISSION_REMOTE=1）
+    result: PRE_SUBMISSION_BLOCKED_blockers=2
+    passed:
+      - local syntax/data/UI contract（pdfs=20 pages=439 nodes=20 edges=17, UI_CONTRACT_OK）
+      - deployed server smoke
+    blockers:
+      - Xingchen Workflow FLOW_ID/API_KEY/API_SECRET 缺失（需用户在揭榜挂帅平台配置真实凭据）
+      - 正式 demo 域名/HTTPS 未配置（需域名解析 + 安全组放行 443）
+
+real_xingchen_workflow_20260806:
+  date: 2026-08-06
+  status: PASS_REAL_WORKFLOW_PREFLIGHT_AND_SMOKE_5_OF_5
+  result:
+    check_xingchen_config: XINGCHEN_CONFIG_READY
+    real_workflow_preflight: REAL_WORKFLOW_PREFLIGHT_OK
+    real_smoke: XFYUN_REAL_SMOKE_success=5_of_5
+    adapter_unit_tests: PASS_14_OF_14
+  integration_fix:
+    - 真实工作流启动节点只声明 AGENT_USER_INPUT；转发 AGENT_MODE 等未声明参数返回 code=22500（Start node protocol error 20601）
+    - Adapter 新增 provider_parameters()：默认只转发 XINGCHEN_INPUT_NAME，可用 XINGCHEN_EXTRA_PARAMS 逗号列表显式转发其他已声明变量
+    - xingchen_smoke.sh 请求体移除 AGENT_MODE；check_xingchen_config 仍校验全部凭据存在
+  changed_files:
+    - agent-adapter/app/main.py
+    - agent-adapter/tests/test_main.py
+    - scripts/xingchen_smoke.sh
+    - deploy/.env.example
+  boundary:
+    - 真实 HTTP 200/code=0 非流式契约与 5/5 流式回答已由真实凭据验收
+    - 错误凭据仍返回 401（HMAC secret key does not match），鉴权负向行为正确
+    - SPARK-AUTH-FAIL-001（旧 Spark Assistant WebSocket 客户端）为独立账本项目，未在本轮关闭；是否由本实现替代需用户确认
+    - 443/HTTPS 域名、demo 录屏、真实人工验收汇总仍为外部门禁
+
+public_browser_acceptance_20260806:
+  date: 2026-08-06
+  target: http://139.196.45.2（新服务器，80 端口已放行）
+  status: PASS_PUBLIC_BROWSER_ACCEPTANCE_3_OF_3
+  method: 本机 google-chrome headless + Playwright（frontend/playwright.public.config.ts，baseURL=http://139.196.45.2）
+  cases:
+    demo_interaction: PASS（/demo?preview=1 交互控件可用，#answerText 出现"示例回答"，无 pageerror，600ms）
+    learn_spa_shell: PASS（/learn/ SPA 外壳渲染：林同学/课程 6 章 20 份资料/12 导航/进度 40%，无横向溢出，628ms）
+    mobile_no_overflow: PASS（390x844 视口 /demo 无横向溢出，263ms）
+  console_notes: 仅 404/401（未登录资源，预期）；"示例回答"为前端预览数据，真实讯飞星辰回答仍依赖凭据
+  evidence:
+    - acceptance/frontend/BUILD-000/public-browser-acceptance-20260806.txt
+    - acceptance/frontend/BUILD-000/demo-public-139.196.45.2-20260806.png
+  files:
+    - frontend/playwright.public.config.ts
+    - frontend/tests/public-demo.spec.ts
+  boundary:
+    - 公网 HTTP 浏览器验收已突破 BLOCKED_TEST_INFRA；完整 21 用例套件仍需本地 mock 环境（公网 config 不含 mock 依赖）
+    - 443/HTTPS 域名、XINGCHEN 真实凭据、demo 录屏、真实人工验收汇总仍为外部门禁
+
+verified_increment:
+  name: BUILD-030 current-course global search
+  run_id: BUILD-030-GLOBAL-SEARCH-20260806-23
+  status: VERIFIED_LOCAL_IMPLEMENTED_PENDING_GATE
+  scope_intent: 当前身份当前课程的 course/chapter/resource/assignment/exam/discussion/knowledge 七类统一搜索，含发布状态过滤、稳定排序、分页、筛选前分类计数、严格 DTO 和 canonical 路由
+  changed_files:
+    - agent-adapter/app/course_store.py
+    - agent-adapter/app/main.py
+    - frontend/src/types.ts
+    - frontend/src/api/client.ts
+    - frontend/src/App.tsx
+    - frontend/src/styles.css
+    - frontend/src/lib/knowledgeGraphFlow.ts
+    - frontend/src/KnowledgeGraphCanvas.tsx
+    - frontend/src/KnowledgeGraphCanvas.test.ts
+  implemented_so_far:
+    - CourseStore.global_search 草稿和 GLOBAL_SEARCH_KINDS
+    - GET /api/search 草稿，含身份课程边界和输入验证
+    - GlobalSearch 类型、严格客户端归一化和 loadGlobalSearch
+    - SearchPage 服务端搜索草稿、预览兼容、加载/空态/错误/筛选/分页/canonical 跳转与旧响应保护
+    - 搜索筛选样式
+    - React Flow 知识图谱固定尺寸、预计算 measured/handles 和先修路径边渲染
+    - 通知分页请求期间的 ready 状态保持和稳定列表高度
+  draft_checks:
+    python_compile: PASS
+    frontend_typecheck_first: FAIL_COUNTS_TYPE_NARROWING_FIXED
+    frontend_lint_first: FAIL_UNUSED_IMPORT_FIXED
+    frontend_typecheck_rerun: PASS
+    frontend_lint_rerun: PASS
+  not_done:
+    - 提升权限回环 Mock、a11y、axe、smoke 和六视口自动化本轮观察性通过；普通沙箱 webServer 仍受限，正式 Moodle/manual 六视口仍未验收
+    - 未分配产品 run_id/计划审查 run_id；正式 Moodle、课程 PDF、三角色、多课程、人工六视口、Workflow、HTTPS/Docker、备份恢复和提交材料门禁仍未通过
+  latest_unnumbered_attempt:
+    attempt: 22
+    status: UNNUMBERED_DRAFT_DEMO_INTERACTION_REVALIDATED_FORMAL_GATES_OPEN
+    supersedes: acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-21.txt
+    review_findings:
+      - archived 课程原草稿只过滤 course 行，已修正为七类结果全空
+      - 原草稿未传播角色，已加入 student/teacher/admin 显式可见性规则和 fail-closed 校验
+      - 稳定跨类型排序、筛选前分类计数和分页已由 API 夹具覆盖
+      - 客户端 DTO、stale response 和 canonical assignment 路由已由 client/App/Mock 测试覆盖
+      - 客户端在读取 search payload 属性前已增加对象形状检查，缺失 data 不再抛原生 TypeError
+      - 本轮复核发现 manifest 缺少显式 GET /api/search endpoint 字段，已补充并加入静态 GET 方法断言
+      - attempt-4 曾误判教师/管理员作业结果目标不存在；attempt-5 完整复核确认课程 scoped 嵌套路由存在并已纠正
+      - 本轮完整复核确认 /teacher/courses/{course_id}/assignments/{assignment_id} 实际存在且保留 CourseScope；已撤销 attempt-4 的误判和顶层目标，恢复课程 scoped canonical 路由
+      - 本轮复现超大 page 导致 SQLite LIMIT/OFFSET OverflowError，已在 Store 层加入 signed 64-bit offset fail-closed 校验并补 HTTP 422 回归
+      - attempt-7 在提升权限的本地回环上下文通过 BUILD-030 定向搜索浏览器 2/2；全量 Mock 仍为 45/48，3 个非搜索失败未被掩盖
+      - attempt-8 独立复现确认图谱拖动失败是首个节点在 720px 视口外，重试失败是 StrictMode 两次初始请求与夹具只失败一次；已仅修正浏览器夹具并分别通过
+      - attempt-8 首次修复后全量 Mock 为 47/48，确认通知深链测试写入共享课程通知污染分页用例；已将深链 POST/list 改为契约形状的隔离 fixture，未改变通知产品语义
+      - attempt-8 最终全量 Mock 48/48，搜索定向 2/2；搜索六文件未发现新的 P0/P1，BUILD-030 仍不分配 run ID
+      - attempt-8 直接执行两个 unittest 文件的包导入入口各失败一次，改用 python3 -m unittest 后分别 2/2 通过，归类为命令入口修复
+      - attempt-9 独立复核六个搜索文件未发现新的角色、课程、排序、DTO、stale-response 或 canonical 路由 P0/P1；仅补齐 CourseStore 直接调用路径的 ASCII 控制字符拒绝并加入 API/client 回归
+      - attempt-9 首次搜索浏览器教师 assignment 点击因几何稳定等待失败，force-click 后 canonical route 断言 2/2 通过；该结果不改变产品路由
+      - attempt-9 完整 Mock 首次 44/48，四个既有通知/图谱稳定性用例定向复测后 1/1，通过最小夹具等待/selector 修正最终 48/48
+      - attempt-9 最终 a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；正式 PDF/Moodle/人工和发布门禁仍开放
+      - attempt-10 独立复核确认上一轮 canonical replace 后未重新加载是实际缺口；SearchPage effect 已加入 isCanonicalRoute/navigate 依赖，并补充非法参数规范化和服务端总数越界页回退测试
+      - attempt-10 定向搜索 API、client、App、完整 Vitest、lint、typecheck、build、API contract 和 OpenAPI 重新验证通过；实际输出为 96/96、113 routes、112 paths
+      - attempt-10 提升权限 Mock 搜索 2/2、完整 Mock 48/48、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱首次 webServer 超时已单独记录为基础设施阻断
+      - attempt-10 local acceptance 在课程数据基线处以缺失 chapter-1-1.1-.pdf 退出 2；BUILD-000、Spark P0 和正式外部门禁状态均未改变
+      - attempt-11 再次独立审查六个搜索文件，确认归档课程全七类空结果、三角色可见性、稳定排序分页、当前身份/课程/published 边界、严格 DTO、stale response 和 canonical 路由均无新的 P0/P1
+      - attempt-11 定向搜索 API 通过，client/App 各 2/2，全量 Vitest 96/96，lint/typecheck/build 通过；实际 OpenAPI 112 paths、API contract 113 routes
+      - attempt-11 提升权限 Mock 搜索 2/2、完整 Mock 48/48、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；默认沙箱搜索 webServer 超时仍记录为基础设施阻断
+      - attempt-11 本地完整验收和 KB 生命周期均因缺失 chapter-1-1.1-.pdf 退出 2；Spark 负向/WS 为 gaierror，Xingchen HTTP fixture 为本地监听 EPERM；未关闭任何正式阻塞项
+      - attempt-12 再次独立审查六个搜索文件，确认归档课程七类结果全空、三角色可见性、稳定排序分页、当前身份/课程/published 边界、严格 DTO、stale-response 和 canonical 路由均无新的 P0/P1；本轮未修改产品源代码
+      - attempt-12 重新生成 OpenAPI，实际输出为 112 paths；API contract 实际输出为 113 routes，manifest 显式 GET /api/search 断言保持通过
+      - attempt-12 定向搜索 API、CourseStore、前端 unit/component、全量 Vitest 96/96、hardening、lint、typecheck、build 和 Python/shell 静态检查通过
+      - attempt-12 提升权限 Mock 搜索 2/2、完整 Mock 48/48、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱 webServer 仍记录基础设施限制
+      - attempt-12 本地完整验收、课程数据校验和 KB 生命周期均因缺失 chapter-1-1.1-.pdf 退出 2；Spark 负向/WS 为 gaierror；正式门禁和 Spark P0 均未关闭
+      - attempt-13 再次独立审查六个搜索文件，未发现新的 P0/P1；归档课程七类结果全空、三角色可见性、稳定排序分页、当前身份/课程/published 边界、严格 DTO、stale-response 和 canonical 路由保持满足当前本地契约
+      - attempt-13 定向搜索 API、CourseStore、Adapter、前端 client/component、全量 Vitest 98/98、hardening、lint、typecheck、build 和 Python/shell 静态检查通过；实际 OpenAPI 112 paths、API contract 113 routes
+      - attempt-13 提升权限 Mock 搜索 3/3、完整 Mock 49/49、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；首次并发搜索因固定端口争用退出 1，端口释放后独立重跑通过，未发现产品断言失败
+      - attempt-13 本地 25 个领域脚本、refresh_progress 2/2、Spark 离线契约 7/7 通过；课程数据校验、KB 生命周期和 local acceptance 均因缺失 chapter-1-1.1-.pdf 退出 2；正式门禁和 Spark P0 均未关闭
+      - attempt-14 独立复核六个搜索文件未发现新的 P0/P1；图谱首帧边缺失定位为 React Flow domNode/ResizeObserver 时序，已改为 flow node DTO 预计算 measured/handles，通知页分页稳定性保持修复
+      - attempt-14 前端 Vitest 98/98、lint/typecheck/build、CourseStore 20/20、Adapter、24 个领域 API 脚本、API contract 113 routes 和 OpenAPI 112 paths 全部通过
+      - attempt-14 提升权限 Mock 定向通知/图谱/路径 3/3、完整 Mock 49/49、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；真实 Moodle、正式三角色、人工六视口和发布门禁仍开放
+      - attempt-14 备份安全 3/3、Spark 离线契约 7/7、账本测试 21/21 通过；Spark live negative/WS 为 gaierror，课程数据、KB lifecycle 和 local acceptance 因缺失 chapter-1-1.1-.pdf 退出 2
+      - attempt-15 独立复核六个搜索文件未发现新的 P0/P1；归档课程七类结果全空、三角色可见性、稳定排序分页、当前身份/课程/published 边界、严格 DTO、stale response 和 canonical 路由保持满足当前本地契约
+      - attempt-15 重新生成 OpenAPI，实际输出为 112 paths；API contract 实际输出为 113 routes；24 个领域 API 脚本全部通过
+      - attempt-15 前端 Vitest 98/98，搜索 client/App 定向 92/92，lint/typecheck/build、CourseStore 20/20、Adapter runtime 全部通过
+      - attempt-15 提升权限 Mock 49/49、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱 Mock webServer 超时，浏览器结果继续仅记 OBSERVED_PASS
+      - attempt-15 备份安全 3/3、验收 fixture、图谱/教材/场景 fixture、Spark 离线契约 7/7 和 Xingchen 两个本地 fixture 通过；Spark live negative/WS 为 gaierror
+      - attempt-15 课程数据校验、KB lifecycle 和 local acceptance 均因缺失 chapter-1-1.1-.pdf 退出 2；BUILD-000、Spark P0 和正式外部门禁均未关闭
+      - attempt-16 独立复核六个搜索文件未发现新的后端 P0/P1；补充客户端 course item ID 必须匹配响应 course_id 的 fail-closed DTO 约束和 client 回归
+      - attempt-16 首次提升权限 Mock 浏览器因两个历史 fixture 使用 course-1/course-2 触发严格 DTO，结果 47/49；已按真实当前课程契约修正 fixture，最终完整 Mock 49/49
+      - attempt-16 前端 Vitest 99/99、client 定向 47/47、lint/typecheck/build、OpenAPI 112 paths、API contract 113 routes 全部通过
+      - attempt-16 24 个领域 API 脚本、CourseStore 20/20、Adapter、hardening、容器、验收 fixture、图谱 fixture、备份安全 3/3 和 Spark 离线 7/7 通过
+      - attempt-16 a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1 和两个本地 Workflow fixture 通过；普通 Mock webServer 超时，a11y/smoke 仍有 8081 proxy 基础设施日志
+      - attempt-16 Spark auth/negative/WS 分别退出 6/6/5 且为 gaierror；课程数据、KB lifecycle 和 local acceptance 均因缺失 chapter-1-1.1-.pdf 退出 2
+      - attempt-17 重新独立审查六个搜索文件，未发现新的 P0/P1；归档课程七类结果全空、三角色可见性、稳定排序分页、当前身份/当前课程/published 边界、严格 DTO、stale response 和 canonical 路由保持满足当前本地契约
+      - attempt-17 当前命令重新验证 API contract 113 routes、Local OpenAPI 112 paths、前端 99/99、Store 20/20、Adapter、容器、hardening、备份安全和数据输入无关领域脚本；直接课程数据、KB lifecycle 和 local acceptance 仍因缺失 chapter-1-1.1-.pdf 退出 2
+      - attempt-17 授权回环浏览器证据为搜索 3/3、完整 Mock 49/49、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱 webServer/临时端口绑定仍分别记录超时或 EPERM，全部仅为 OBSERVED_PASS
+      - attempt-17 Spark 离线协议 7/7 和授权本地 Xingchen HTTP/smoke fixture 通过；Spark live negative/auth/WS 分别退出 6/6/5 且为 gaierror，SPARK-AUTH-FAIL-001、BUILD-000 和正式外部门禁未关闭
+      - attempt-18 独立复核六个搜索文件未发现新的 P0/P1；新增 CourseStore 直接调用的正整数和 signed SQLite course_id fail-closed 校验，并补充 0、-1、2^63 API 回归
+      - attempt-18 搜索 API、Store 20/20、Adapter、API contract 113 routes、Local OpenAPI 112 paths、前端 Vitest 99/99、lint/typecheck/build 和 26 个数据输入无关脚本通过
+      - attempt-18 授权浏览器审批审查两次在进程创建前超时，普通沙箱重跑在 webServer 等待 4300 超时；本轮 T4 不计新的浏览器 PASS，attempt-17 浏览器结果保留为历史观察性证据
+      - attempt-19 重新独立复核六个搜索文件未发现新的 P0/P1；仅收窄一个非搜索会话过期浏览器用例的 alert 选择器，未改变搜索产品语义
+      - attempt-19 本地搜索 API、Store 20/20、Adapter、API contract 113 routes、Local OpenAPI 112 paths、前端 Vitest 99/99、lint/typecheck/build 和部署 smoke 全部通过
+      - attempt-19 提升权限浏览器 Mock 49/49、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱 Mock webServer 超时，正式 Moodle/manual 六视口仍开放
+      - attempt-19 本地 run_local_acceptance 以退出 2 在课程资料基线处停止；远端 Docker 健康和 Moodle smoke 通过，但远端保留课程 PDF 不等于本地正式输入恢复
+      - attempt-20 独立复核六个搜索草稿文件未发现新的 P0/P1；新增管理员七类搜索结果 canonical 路由浏览器契约，课程/章节/资源/作业/考试/讨论/知识结果均保持角色边界
+      - attempt-20 收窄部署归档，排除 node_modules、dist 和 test-results；脚本语法检查通过，重新部署成功，未改变搜索 API、DTO、排序、分页或路由实现
+      - attempt-20 定向管理员搜索 1/1、完整 Mock 50/50、a11y 3/3、axe 4/4、smoke 2/2、六视口截图 1/1；普通沙箱 webServer 仍超时，结果仅作提升权限回环观察性证据
+      - attempt-20 本地 T0-T3 通过，API contract 实际为 113 routes，Local OpenAPI 实际为 112 paths；远端 Docker 网络搜索验证为 roles=3、kinds=7、stable_pagination=verified、archived_isolation=verified
+      - attempt-20 本地 run_local_acceptance 仍以退出 2 停在缺失 chapter-1-1.1-.pdf；BUILD-000、SPARK-AUTH-FAIL-001 和正式 Moodle/三角色/多课程/Workflow/HTTPS/备份恢复/提交材料门禁均保持开放
+      - attempt-21 独立复核六个搜索文件未发现新的 P0/P1；远端部署副本六个搜索文件 SHA-256 与当前工作树完全匹配
+      - attempt-21 实际 Adapter 容器搜索 API 通过，roles=3、kinds=7、stable_pagination=verified、archived_isolation=verified；远端生成 OpenAPI 为 112 paths，部署副本 API contract 为 113 routes
+      - attempt-21 远端 Node 22 Alpine 容器前端 Vitest 99/99、lint、typecheck、build 全部通过，build 实际转换 1857 modules；远端宿主机无 npm/浏览器，未新增正式浏览器 PASS
+      - attempt-21 本机公开 /demo?preview=1 HTTP 200；只保留此前有效 Moodle/login/resource-boundary 证据，不把本轮错误示例文件名 404 作为权限结论
+      - attempt-21 宿主机直接执行搜索脚本因缺少 httpx 失败，但实际 Adapter 容器内同一脚本通过；归类为测试执行器差异，不改变产品状态
+      - attempt-22 独立复现 /demo?preview=1 的所有按钮失效，浏览器 pageerror 为 Unexpected token ')'；定位为 openAssignment() 模板字符串赋值多一个右括号，修正后内联脚本可解析且事件绑定恢复
+      - attempt-22 新增 demo-preview Playwright 契约，桌面课程导航/章节标签/AI 预览/情景/任务抽屉和 390x844 移动菜单 2/2 通过；未改变 BUILD-030 搜索语义或其未编号状态
+      - attempt-22 完整 deploy_server.sh 首次因本地 checkout 0 份 manifest PDF 在资料门禁退出 1，使用授权资料源重试后因 SSH connection closed 退出 255；随后仅同步 agent-ui/index.html 并重建容器成功，远端哈希与本地一致、agent-ui healthy、公开浏览器交互通过
+    changed_files:
+      - agent-adapter/app/course_store.py
+      - agent-adapter/app/main.py
+      - frontend/src/types.ts
+      - frontend/src/api/client.ts
+      - frontend/src/App.tsx
+      - frontend/src/styles.css
+      - frontend/src/lib/knowledgeGraphFlow.ts
+      - frontend/src/KnowledgeGraphCanvas.tsx
+      - frontend/src/KnowledgeGraphCanvas.test.ts
+      - scripts/test_global_search_api.py
+      - frontend/src/api/client.test.ts
+      - frontend/src/App.test.tsx
+      - frontend/tests/mock-api.spec.ts
+      - scripts/test_api_contract.py
+      - api-test-manifest.yaml
+      - openapi.test.json
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-3.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-4.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-5.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-6.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-7.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-8.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-9.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-10.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-11.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-12.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-13.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-14.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-15.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-16.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-17.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-18.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-19.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-20.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-21.txt
+      - scripts/deploy_server.sh
+      - agent-ui/index.html
+      - frontend/package.json
+      - frontend/playwright.demo.config.ts
+      - frontend/tests/demo-preview.spec.ts
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-22.txt
+    test_results:
+      global_search_api: PASS_GLOBAL_SEARCH_API_OK
+      search_extreme_page_guard: PASS_HTTP_422
+      targeted_vitest: OBSERVED_PASS_CLIENT_47_COMPONENT_46_SEARCH_CASES_3
+      full_vitest: OBSERVED_PASS_99_OF_99_LOCAL
+      course_store: PASS_20_OF_20
+      adapter_runtime: PASS_13_OF_13
+      backend_domain_scripts: PASS_24_OF_24_LOCAL_SCRIPTS
+      frontend_lint_typecheck_build: OBSERVED_PASS_1857_MODULES_LOCAL
+      api_contract: OBSERVED_PASS_113_ROUTES_LOCAL
+      local_openapi: OBSERVED_PASS_112_PATHS_LOCAL
+      manifest_endpoint: PASS_GET_API_SEARCH_EXPLICIT
+      course_data_baseline: BLOCKED_INPUT_MISSING_chapter_1_1.1_.pdf
+      local_acceptance_entry: BLOCKED_INPUT_AT_COURSE_DATA_BASELINE
+      direct_vite_listener: BLOCKED_DEPENDENCY_EPERM
+      python_shell_ui_hardening_container_diff: PASS
+      refresh_progress_snapshot: PASS_2_OF_2
+      provider_smoke_loopback_fixture: PASS_ESCALATED_LOCAL_FIXTURE
+      first_spark_invocation: REPAIRED_COMMAND_IMPORT_PATH_FAILURE_THEN_PASS
+      spark_negative_and_ws: BLOCKED_EXTERNAL_GAIERROR_EXIT_6_AND_5
+      targeted_global_search_browser_initial: HISTORICAL_FAIL_1_OF_3_PORT_CONTENTION
+      targeted_global_search_browser: HISTORICAL_OBSERVED_PASS_3_OF_3_ESCALATED_LOOPBACK
+      dto_browser_revalidation_initial: FAIL_2_OF_49_INVALID_MOCK_COURSE_ITEM_DTO_REPAIRED
+      full_mock_browser_initial: OBSERVED_FAIL_1_OF_49_NON_SEARCH_ALERT_SELECTOR_AMBIGUITY_REPAIRED
+      targeted_browser_fixture_revalidation: PASS_4_OF_4
+      admin_global_search_browser: OBSERVED_PASS_1_OF_1_ESCALATED_LOOPBACK_CURRENT
+      full_mock_browser: OBSERVED_PASS_50_OF_50_ESCALATED_LOOPBACK_CURRENT
+      a11y_browser: OBSERVED_PASS_3_OF_3_CURRENT
+      axe_browser: OBSERVED_PASS_4_OF_4_CURRENT
+      smoke_browser: OBSERVED_PASS_2_OF_2_CURRENT
+      screenshots_browser: OBSERVED_PASS_1_OF_1_SIX_VIEWPORT_SCENARIO_CURRENT
+      browser_test_lists: OBSERVED_PASS_CURRENT_ADMIN_SEARCH_1_MOCK_50_A11Y_3_AXE_4_SMOKE_2_SCREENSHOTS_1
+      local_domain_scripts: PASS_26_LOCAL_SCRIPTS_BLOCKED_1_KB_LIFECYCLE
+      kb_lifecycle: BLOCKED_INPUT_MISSING_chapter_1_1.1_.pdf
+      local_acceptance: BLOCKED_INPUT_EXIT_2_AT_COURSE_DATA_BASELINE
+      progress_ledger_attempt: 22
+      progress_snapshot_direct_entry: REPAIRED_IMPORT_PATH_THEN_PASS_2_OF_2
+      verify_course_data_direct_entry: REPAIRED_IMPORT_PATH_THEN_PASS_2_OF_2
+      verify_course_data_current: BLOCKED_INPUT_MISSING_chapter_1_1.1_.pdf
+      kb_lifecycle_current: BLOCKED_INPUT_MISSING_chapter_1_1.1_.pdf
+      local_acceptance_current: BLOCKED_INPUT_EXIT_2_AT_COURSE_DATA_BASELINE
+      spark_contract_current: PASS_7_OF_7
+      spark_auth_negative_current: BLOCKED_EXTERNAL_GAIERROR_EXIT_6
+      spark_negative_current: BLOCKED_EXTERNAL_GAIERROR_EXIT_6
+      spark_ws_current: BLOCKED_EXTERNAL_GAIERROR_EXIT_5
+      xingchen_fixtures_current: PASS_ESCALATED_LOCAL_FIXTURES
+      store_course_id_guard_current: PASS_INVALID_IDS_REJECTED
+      browser_revalidation_current: OBSERVED_PASS_ELEVATED_ADMIN_SEARCH_1_MOCK_50_A11Y_3_AXE_4_SMOKE_2_SCREENSHOTS_1_ORDINARY_SANDBOX_TIMEOUT
+      remote_search_api_current: PASS_ROLES_3_KINDS_7_STABLE_PAGINATION_ARCHIVED_ISOLATION
+      remote_search_source_hashes_current: PASS_6_OF_6_MATCH_CURRENT_TREE
+      remote_api_contract_current: OBSERVED_PASS_113_ROUTES
+      remote_openapi_current: OBSERVED_PASS_112_PATHS
+      remote_frontend_vitest_current: OBSERVED_PASS_99_OF_99_NODE_22_ALPINE
+      remote_frontend_lint_current: OBSERVED_PASS
+      remote_frontend_typecheck_current: OBSERVED_PASS
+      remote_frontend_build_current: OBSERVED_PASS_1857_MODULES
+      remote_demo_http_current: OBSERVED_PASS_HTTP_200
+      remote_browser_current: BLOCKED_TEST_INFRA_HOST_NO_NPM_OR_BROWSER
+      demo_inline_script_parse_current: PASS_INLINE_SCRIPT_PARSE_OK
+      demo_preview_contract_current: OBSERVED_PASS_2_OF_2_DESKTOP_MOBILE
+      demo_full_vitest_current: OBSERVED_PASS_100_OF_100_LOCAL
+      demo_frontend_build_current: OBSERVED_PASS_1857_MODULES_LOCAL
+      demo_remote_browser_current: OBSERVED_PASS_HTTP_200_NO_PAGE_ERRORS_DESKTOP_MOBILE_CONTROLS
+      demo_remote_source_hash_current: PASS_LOCAL_REMOTE_HASH_MATCH
+      demo_full_deploy_current: BLOCKED_SSH_CONNECTION_CLOSED_AFTER_AUTHORIZED_SOURCE_RETRY
+      demo_single_file_redeploy_current: PASS_AGENT_UI_HEALTHY
+    browser_acceptance:
+      prior_discovery: MOCK_47_A11Y_3_AXE_4_SMOKE_2_NOT_CURRENT_PASS
+      prior_attempt_17_observation:
+        targeted_global_search_mock: OBSERVED_PASS_3_OF_3_ESCALATED_LOOPBACK
+        targeted_teacher_assignment_search: INCLUDED_IN_FULL_MOCK_49_OF_49
+        full_mock: OBSERVED_PASS_49_OF_49_ESCALATED_LOOPBACK
+        a11y: OBSERVED_PASS_3_OF_3
+        axe: OBSERVED_PASS_4_OF_4
+        smoke: OBSERVED_PASS_2_OF_2
+        screenshots: OBSERVED_PASS_1_OF_1_SIX_VIEWPORT_SCENARIO
+        browser_list: OBSERVED_PASS_MOCK_49_A11Y_3_AXE_4_SMOKE_2_SCREENSHOTS_1
+      current_attempt:
+        targeted_global_search_mock: INCLUDED_IN_CURRENT_FULL_MOCK_50_OF_50
+        administrator_global_search_mock: OBSERVED_PASS_1_OF_1_ELEVATED_LOOPBACK
+        full_mock: OBSERVED_PASS_50_OF_50_ELEVATED_LOOPBACK
+        a11y: OBSERVED_PASS_3_OF_3_ELEVATED_LOOPBACK
+        axe: OBSERVED_PASS_4_OF_4_ELEVATED_LOOPBACK
+        smoke: OBSERVED_PASS_2_OF_2_ELEVATED_LOOPBACK
+        screenshots: OBSERVED_PASS_1_OF_1_SIX_VIEWPORT_ELEVATED_LOOPBACK
+    prior_observed_browser_pass_count: 60
+    blockers:
+      - 当前系统 Python 仍缺 uvicorn；本轮仅通过 /tmp/jbgs-agent-deps 临时依赖目录启动 API webServer
+      - 普通沙箱命令上下文无法访问其他上下文的 127.0.0.1；本轮浏览器验收需要提升权限回环执行
+      - manifest 匹配的课程 PDF 仍缺失，BUILD-000 继续 BLOCKED_INPUT
+      - SPARK-AUTH-FAIL-001 继续保持开放 P0
+      - 普通沙箱 Mock webServer 在端口 4300 等待超时；当前提升权限回归通过，但正式 Moodle/manual 六视口仍未验收
+      - 远端宿主机系统 Python 缺少 httpx；一次性验证容器遇到远端保留课程 PDF 导致的资源挂载断言差异，均不关闭正式输入门禁
+      - 正式 Moodle/pluginfile、三角色、多课程、六视口、Workflow、HTTPS/Docker、备份恢复和提交材料门禁仍开放
+    evidence:
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-2.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-3.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-4.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-5.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-6.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-7.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-8.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-9.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-10.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-11.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-12.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-13.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-14.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-15.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-16.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-17.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-18.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-19.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-20.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-21.txt
+      - acceptance/frontend/BUILD-000/deployment-revalidation-20260730-02.txt
+      - acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-22.txt
+      - acceptance/frontend/BUILD-030/global-search-20260806-attempt-23.txt
+    rollback: 当前 attempt-22 为演示页脚本修复、交互契约和服务器 agent-ui 单文件恢复；如需回滚，仅移除 attempt-22 证据、契约文件和该一行脚本修复并重建上一份审查过的 agent-ui，保留全部用户/既有未提交改动、历史证据、搜索实现、服务器 deploy/.env、数据库、manifest 哈希和 page_count。
+    next_gate_allowed: false
+    product_run_id: null
+    plan_review_run_id: null
+  latest_verified_attempt:
+    attempt: 23
+    status: VERIFIED_LOCAL_IMPLEMENTED_PENDING_GATE
+    run_id: BUILD-030-GLOBAL-SEARCH-20260806-23
+    plan_audit_id: PLAN-TEST-AUDIT-20260806-60
+    supersedes: acceptance/frontend/BUILD-030/global-search-unnumbered-draft-20260730-attempt-22.txt and BUILD-030-GRAPH-INTERACTIVE-RETEST-20260728-44
+    verification_results:
+      global_search_api: PASS_ROLES_3_KINDS_7_PAGINATION_ARCHIVED_ISOLATION
+      api_contract: PASS_113_ROUTES
+      local_openapi: PASS_112_PATHS
+      course_store: PASS_20_OF_20
+      adapter_unit_tests: PASS_15_OF_15
+      kb_release_driver: PASS_10_OF_10
+      full_vitest: PASS_100_OF_100
+      lint_typecheck_build: PASS_1857_MODULES_INDEX_450_94_KB
+      local_acceptance: PASS_LOCAL_ACCEPTANCE_OK
+      course_data_baseline: PASS_20_PDFS_439_PAGES
+      mock_browser: PASS_50_OF_50
+      a11y_browser: PASS_3_OF_3
+      axe_browser: PASS_4_OF_4
+      smoke_browser: PASS_2_OF_2
+      screenshots_browser: PASS_1_OF_1_SIX_VIEWPORTS
+      progress_validator: PASS_METADATA_11_BLOCKERS_28_EVIDENCE_REFS_241
+    mock_test_baseline_update:
+      - frontend/tests/mock-api.spec.ts 两个用例从“未挂载”断言更新为已挂载 20 份 PDF 的真实行为（工作台“继续”、资源卡“打开资料”、阅读器“课程阅读器”+ iframe.pdf-frame）
+      - 无产品代码/API/DTO/排序/分页/路由语义变化；50/50 全量回归通过
+    formal_gates_still_open:
+      - 真实 Moodle 三角色/pluginfile、六视口人工辅助技术验收
+      - 真实工作流知识库发布（REAL-KB-RELEASE-20260806-01，需工作流引用标记）
+      - 正式 HTTPS/域名、备份恢复复核、demo 录屏与真实人工验收汇总（提交材料）
+    next_action: 用户配置工作流引用标记后恢复 KB 发布 → 真实聊天 E2E → 正式验收与提交材料
+  forbidden_claims:
+    - 本地实现与验证已完成并正式编号（BUILD-030-GLOBAL-SEARCH-20260806-23），但 BUILD-030 仍为 IMPLEMENTED_PENDING_GATE，不得宣称正式门禁关闭
+    - 本地 Mock 浏览器结果只能记 OBSERVED_PASS，不得当作真实 Moodle 三角色/pluginfile 验收
+    - 不得宣称知识库已发布或真实命中已通过（0/3，PARKED_EXTERNAL_BLOCKED）
+    - 不得把 lint/typecheck 当作 API、组件、浏览器或正式 Moodle 验收
+
+open_blocker_summary:
+  count: 28
+  source: PROJECT_PROGRESS_HISTORY_20260729.yaml known_blockers
+  critical:
+    - BUILD-000 正式门禁仍开放：真实 Moodle 三角色/pluginfile、正式 API/OpenAPI 复验、六视口人工辅助技术（本地 20 份 PDF 基线已挂载，公网浏览器 3/3 已突破）
+    - 真实工作流未输出 [来源文件...] 引用标记，KB 黄金命中 0/3，发布被工作流侧契约阻断（REAL-KB-RELEASE-20260806-01）
+    - SPARK-AUTH-FAIL-001 是开放 P0，不得由本地功能回归关闭
+    - 正式 HTTPS/域名、真实人工验收、Demo 录屏和提交材料门禁仍开放
+
+security_and_workspace_rules:
+  - 不读取或输出 .env.test.local
+  - 不记录 API Key、Secret、Authorization、Cookie、签名 URL、完整问答或真实学生数据
+  - 不生成占位 PDF，不修改 manifest 哈希或 page_count
+  - 手工编辑使用 apply_patch
+  - 不回退用户和既有未提交改动
+  - 子代理并发硬上限为 2；完成或失败后立即关闭
+
+conversation_migration_audit:
+  status: PASS_WITH_PAUSED_UNVERIFIED_DRAFT_DECLARED
+  checks:
+    yaml_parse: PASS
+    compact_progress: PASS_191_LINES_8465_BYTES
+    history_archive: PASS_6148_LINES_357219_BYTES_SHA256_MATCH
+    history_counts: PASS_TEST_RUNS_123_BLOCKERS_28
+    ledger_unit_tests: PASS_10_OF_10_AFTER_HISTORY_SPLIT
+    progress_validator: PASS_METADATA_11_BLOCKERS_28_EVIDENCE_REFS_241_REDACTION_AFTER_HISTORY_SPLIT
+    working_tree_snapshot: PASS_TRACKED_24_UNTRACKED_44_TOTAL_68
+    git_diff_check: PASS
+    runtime_cleanup: PASS_NO_TARGET_LISTENERS_OR_UVICORN_VITE_PLAYWRIGHT_PROCESSES
+    subagents: PASS_ZERO_ACTIVE; TWO_429_FAILURES_CLOSED_AND_RECHECKED_NOT_FOUND
+  note: 暂停草稿只通过 Python 编译、前端 lint/typecheck；没有 API、组件、浏览器或 T0-T6 通过声明
+
+resume_order:
+  - BUILD-030 已由 BUILD-030-GLOBAL-SEARCH-20260806-23 完成本地验证并正式编号；继续前以最新证据为准
+  - 剩余可推进项：用户配置工作流引用标记后恢复 KB 发布与真实聊天 E2E；正式验收与提交材料
+  - 每次改动后重跑对应套件并更新账本快照计数与验证器
+  - 最后复核账本/脱敏/git diff/端口/进程/子代理并保持正式门禁状态真实

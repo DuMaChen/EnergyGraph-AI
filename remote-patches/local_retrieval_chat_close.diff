@@ -1,0 +1,5 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -3584,1 +3584,2 @@
+             identity, mode, question.strip(), graph_context, profile_context, scenario_context, resource_context=resource_context, local_context=local_context, local_sources=local_sources,
++        )

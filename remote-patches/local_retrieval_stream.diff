@@ -1,0 +1,17 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -663,1 +663,1 @@
+-            str(parameters.get(os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"), "")),
++            str(parameters.get("AGENT_ORIGINAL_QUESTION") or parameters.get(os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"), "")),
+@@ -671,1 +671,2 @@
+     published = store.published_kb(identity.course_id)
++    retrieval_sources = [dict(source) for source in parameters.get("LOCAL_RETRIEVAL_SOURCES", []) if isinstance(source, dict)]
+@@ -733,1 +733,7 @@
+-                if not emitted_source_ids:
++                for source in retrieval_sources:
++                    source_id = str(source.get("source_id") or "")
++                    if not source_id or source_id in emitted_source_ids:
++                        continue
++                    emitted_source_ids.add(source_id)
++                    yield {"event": "source", "data": {**source, "request_id": request_id}}
++                if not emitted_source_ids:

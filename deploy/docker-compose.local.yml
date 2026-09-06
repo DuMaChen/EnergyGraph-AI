@@ -1,0 +1,17 @@
+# Local-development override for deploy/docker-compose.yml.
+#
+# The server deployment ships with deploy/.env pinned to SITE_HOST=168.144.36.82.
+# This override points the services that read env files at deploy/.env.local so a
+# local run binds Caddy and Moodle to http://localhost instead. The deployment's
+# default compose invocation is untouched because this file is never auto-loaded
+# (docker-compose.override.yml would be, so we deliberately avoid that name).
+#
+# Usage:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.local.yml \
+#     --project-directory deploy --env-file deploy/.env.local up -d --build \
+#     db moodle agent-adapter agent-ui caddy
+services:
+  moodle:
+    env_file: .env.local
+  agent-adapter:
+    env_file: .env.local

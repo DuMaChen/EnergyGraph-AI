@@ -1,0 +1,10 @@
+*** Begin Patch
+*** Update File: /opt/jbgs-course-agent/agent-adapter/app/course_store.py
+@@
+-            if len(valid_nodes) != 2:
++            # A path from a node to itself is a valid zero-hop path. SQLite
++            # returns one row for IN (?, ?) when both parameters are equal;
++            # requiring two rows incorrectly turned that request into 404.
++            if not valid_nodes or (start_id != end_id and len(valid_nodes) != 2):
+                 return None
+*** End Patch

@@ -1,0 +1,13 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -539,2 +539,4 @@
+     resource_context: str = "",
++    local_context: str = "",
++    local_sources: list[dict[str, Any]] | None = None,
+ ) -> dict[str, Any]:
+@@ -571,4 +573,3 @@
+         "RESOURCE_CONTEXT": resource_context,
+-    }
+         "AGENT_ORIGINAL_QUESTION": question,
+         "LOCAL_RETRIEVAL_SOURCES": local_sources or [],
++    }

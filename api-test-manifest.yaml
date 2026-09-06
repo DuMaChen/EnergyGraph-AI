@@ -1,0 +1,114 @@
+version: 1
+project: EnergyGraph-AI
+environment: local-isolated-adapter
+formal_external_contract: false
+openapi: openapi.test.json
+base_url: http://127.0.0.1:8082
+course_id: 1
+auth:
+  mode: MOCK_AUTH_MODE=true
+  roles: [student, teacher, admin]
+  csrf: mock-auth-disables-browser-write-check
+  credentials_recorded: false
+workflow:
+  mode: MOCK_WORKFLOW_MODE=true
+  real_workflow: false
+fixtures:
+  database: temporary-isolated-sqlite
+  resource_storage: temporary-resource-directory
+  course_manifest: course-data/normalized/manifest.json
+  reset: each script creates or resets its own temporary database
+  course_pdfs: absent; manifest verification remains BLOCKED_INPUT
+tests:
+  - id: COURSE-LOCAL-001
+    command: python3 scripts/test_course_list_api.py
+    scope: COURSE-001..008 local configured-course list, detail, pagination, sort, empty-state, unauthorized boundary and role access
+    result: OBSERVED_PASS
+  - id: GLOBAL-SEARCH-LOCAL-001
+    command: python3 scripts/test_global_search_api.py
+    endpoint: GET /api/search
+    scope: current-course seven-kind search; student published visibility; teacher/admin lifecycle visibility; archived-course empty boundary; stable cross-kind pagination; strict identity and input boundaries
+    result: OBSERVED_PASS
+  - id: AUTH-LOCAL-001
+    command: python3 scripts/test_api_contract.py
+    scope: route and deployment configuration contract
+    result: PASS
+  - id: RESOURCE-LOCAL-001
+    command: python3 scripts/test_resource_progress_api.py
+    scope: published visibility, progress versioning, archive access, and current-user/current-course recent learning position ordering and isolation
+    result: OBSERVED_PASS
+  - id: RESOURCE-ANNOTATIONS-LOCAL-001
+    command: python3 scripts/test_resource_annotations_api.py
+    scope: user-scoped favorites, page notes, idempotency, CSRF and optimistic note versions
+    result: OBSERVED_PASS
+  - id: RESOURCE-FAVORITES-LOCAL-001
+    command: python3 scripts/test_resource_favorites_api.py
+    scope: student favorite resource list, note counts, pagination, role and cross-user isolation
+    result: OBSERVED_PASS
+  - id: EXAM-LOCAL-001
+    command: python3 scripts/test_exam_api.py
+    scope: independent exam window, server-owned attempt deadline, draft versioning, submit idempotency and objective score
+    result: OBSERVED_PASS
+  - id: TEACHER-EXAM-LOCAL-001
+    command: python3 scripts/test_teacher_exam_api.py
+    scope: teacher exam list, draft/publish/withdraw/archive state, role isolation, pagination and idempotent writes
+    result: OBSERVED_PASS
+  - id: STAFF-LOCAL-001
+    command: python3 scripts/test_teacher_resource_api.py
+    scope: teacher resource metadata, file safety, revision, publish, archive and audit
+    result: OBSERVED_PASS
+  - id: AGENT-LOCAL-001
+    command: python3 scripts/test_agent_boundary_api.py
+    scope: course, role, source, policy and recovery boundaries
+    result: OBSERVED_PASS
+  - id: SPARK-LOCAL-001
+    command: python3 -m unittest -q scripts.test_spark_assistant_contract
+    scope: offline Spark signing/configuration/frame contract
+    result: OBSERVED_PASS
+  - id: FRONTEND-LOCAL-001
+    command: cd frontend && npm run test:e2e:mock -- --workers=1
+    scope: Mock browser workflows only
+    result: BLOCKED_TEST_INFRA_CURRENT_RUN; historical allowed-listener passes retained separately
+  - id: ADMIN-MODERATION-LOCAL-001
+    command: python3 scripts/test_admin_moderation_api.py
+    scope: course-scoped discussion reports, pending queue, approve/reject decisions, idempotency, audit and role isolation
+    result: OBSERVED_PASS
+  - id: NOTIFICATION-CENTER-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_social_api.py
+    scope: notification audience and course isolation, SQL-bounded snapshot pagination, global unread count, individual and bulk read persistence, atomic multi-instance idempotency, request-id audit and unknown-role fail-closed behavior
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-060/notification-center-revalidation-20260728-46.txt
+  - id: ACTIVITY-QUICK-RESPONSE-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_activity_api.py
+    scope: poll/survey/checkin/quick_response lifecycle; two-kind and check-in-era SQLite constraint migrations with preserved history, dependent schema and pre-commit foreign-key validation; server-owned single-attempt check-in and first-writer-wins quick response; atomic response/auto-close/audit/idempotency rollback; explicit role/course isolation; student winner privacy and teacher/admin two-field participant records; two independent CourseStore instances sharing SQLite for create, check-in and quick-response races; request-id audit; terminal winner lifecycle; sequential and legacy-gap attempts; latest-response aggregation; result visibility; unknown-role fail-closed behavior
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-060/quick-response-revalidation-20260729-50.txt
+  - id: ACTIVITY-CLASSROOM-EVENTS-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_classroom_events_api.py
+    scope: current-course active Moodle roster normalization to stable user_ref; random-selection no-repeat cycles, idempotency, closed/reopen lifecycle and student privacy; balanced group-task generation, immutable revision history, student own-group boundary, staff pseudonymous results, audit and cross-course isolation
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-060/random-group-revalidation-20260729-52.txt
+  - id: TASK-CENTER-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_task_center_api.py
+    scope: student-only current-course assignment, exam, discussion and visible-notification aggregation; current-user state, server-owned deadlines, kind/status filters, pagination, pre-filter counts, stable ordering, privacy field whitelist and role/course isolation
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-060/task-center-revalidation-20260729-54.txt
+  - id: NOTIFICATION-DEEP-LINK-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_social_api.py
+    scope: visible notification focus-id validation, current-course and role-audience lookup, exact server-order page relocation, non-disclosing hidden/cross-course/missing response, client normalization, message-center highlight and no automatic read write
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-060/notification-deep-link-revalidation-20260729-56.txt
+  - id: GRAPH-SNAPSHOT-LOCAL-001
+    command: PYTHONPATH=$PWD/agent-adapter python3 scripts/test_graph_scenario_fixture.py
+    scope: current-course graph snapshot with 20 nodes, 17 directional edges, student/teacher/admin read parity, unknown-role rejection and both-endpoint cross-course edge filtering
+    result: OBSERVED_PASS
+    evidence: acceptance/frontend/BUILD-030/interactive-graph-revalidation-20260728-42.txt
+evidence:
+  allowed: [status, exit_code, command, count, hash, timing, redacted_error_category]
+  forbidden: [API_key, API_secret, signed_url, Authorization, Cookie, full_question, full_answer, real_student_data]
+formal_acceptance_blockers:
+  - formal Moodle HTTPS base URL and OpenAPI contract
+  - resettable student/teacher/admin role references
+  - Moodle pluginfile capability and grade bridge
+  - matching 20 course PDFs and verified manifest hash/page_count
+  - six-viewport screenshots and formal accessibility evidence

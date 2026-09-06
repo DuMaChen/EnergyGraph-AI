@@ -1,0 +1,5 @@
+--- agent-adapter/app/main.py
++++ agent-adapter/app/main.py
+@@ -575,1 +575,2 @@
+         "LOCAL_RETRIEVAL_SOURCES": local_sources or [],
++    }

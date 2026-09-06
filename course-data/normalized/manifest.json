@@ -1,0 +1,186 @@
+{
+  "source_archive": "教材课件分章节pdf版.zip",
+  "pdf_count": 20,
+  "files": [
+    {
+      "archive_file": "教材课件分章节pdf版/1.1 电力储能技术的概念 .pdf",
+      "source_file": "1.1 电力储能技术的概念 .pdf",
+      "normalized_file": "chapter-1-1.1-.pdf",
+      "chapter_id": 1,
+      "chapter": "第1章 概述",
+      "sha256": "a84c77f376f6232ba9043e0e84540ae410263e5d9f4eb0f70fdf0b23db88bd8d",
+      "page_count": 13
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/1.2 电力储能技术的发展.pdf",
+      "source_file": "1.2 电力储能技术的发展.pdf",
+      "normalized_file": "chapter-1-1.2-.pdf",
+      "chapter_id": 1,
+      "chapter": "第1章 概述",
+      "sha256": "43ffac4997de4da108c28337da00d7924d8106f178390f343ec8c260d2a18537",
+      "page_count": 23
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/1.3 储能技术在电力系统中的应用.pdf",
+      "source_file": "1.3 储能技术在电力系统中的应用.pdf",
+      "normalized_file": "chapter-1-1.3-.pdf",
+      "chapter_id": 1,
+      "chapter": "第1章 概述",
+      "sha256": "d67a9dcb32d731b3cfebcb077f023f45e115972f82afbbbb8e06e878b6543513",
+      "page_count": 4
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/2.1 电力系统的基本概念.pdf",
+      "source_file": "2.1 电力系统的基本概念.pdf",
+      "normalized_file": "chapter-2-2.1-.pdf",
+      "chapter_id": 2,
+      "chapter": "第2章 电力系统与储能技术的应用",
+      "sha256": "65956e492b22afdfe9729460e9e573203e265ed8dc34d099e80664e667e582ce",
+      "page_count": 11
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/2.2 电力系统的运行特点和要求.pdf",
+      "source_file": "2.2 电力系统的运行特点和要求.pdf",
+      "normalized_file": "chapter-2-2.2-.pdf",
+      "chapter_id": 2,
+      "chapter": "第2章 电力系统与储能技术的应用",
+      "sha256": "1d661776ef6f75fae511823e0685e21dfab902546b67eb2117c96cf8df38417a",
+      "page_count": 9
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/2.3 储能技术的典型应用.pdf",
+      "source_file": "2.3 储能技术的典型应用.pdf",
+      "normalized_file": "chapter-2-2.3-.pdf",
+      "chapter_id": 2,
+      "chapter": "第2章 电力系统与储能技术的应用",
+      "sha256": "5cc4c9bb581175c3355aae13d5722ef9b8d9c8fb333b078ba1eb872cd88163c0",
+      "page_count": 11
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/3.1 抽水蓄能电站的组成及工作原理.pdf",
+      "source_file": "3.1 抽水蓄能电站的组成及工作原理.pdf",
+      "normalized_file": "chapter-3-3.1-.pdf",
+      "chapter_id": 3,
+      "chapter": "第3章 电力储能系统的组成及工作原理",
+      "sha256": "0cf1af894842de408046619131d6f6aa745b2332befdd36cd62910c07102a5f6",
+      "page_count": 29
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/3.2 新型电力储能系统的组成.pdf",
+      "source_file": "3.2 新型电力储能系统的组成.pdf",
+      "normalized_file": "chapter-3-3.2-.pdf",
+      "chapter_id": 3,
+      "chapter": "第3章 电力储能系统的组成及工作原理",
+      "sha256": "cba92b7b7bb8f7be1160a4bcc3f0350d4d28bec0a735c91889c6f7c23d8b76a7",
+      "page_count": 7
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/3.3 新型电能存储设备工作原理.pdf",
+      "source_file": "3.3 新型电能存储设备工作原理.pdf",
+      "normalized_file": "chapter-3-3.3-.pdf",
+      "chapter_id": 3,
+      "chapter": "第3章 电力储能系统的组成及工作原理",
+      "sha256": "d0fedfdd861d9d43c2e5139aa66b3ab1c3873cf16fe702e4ef13451fc593bc77",
+      "page_count": 43
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/3.4 储能变流器拓扑及并网控制.pdf",
+      "source_file": "3.4 储能变流器拓扑及并网控制.pdf",
+      "normalized_file": "chapter-3-3.4-.pdf",
+      "chapter_id": 3,
+      "chapter": "第3章 电力储能系统的组成及工作原理",
+      "sha256": "783e11bd83f3c34a3c1e74f3193f1e2f6264c8b14c77df55375b45e87a23299d",
+      "page_count": 38
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/3.5 储能监控系统结构及通信.pdf",
+      "source_file": "3.5 储能监控系统结构及通信.pdf",
+      "normalized_file": "chapter-3-3.5-.pdf",
+      "chapter_id": 3,
+      "chapter": "第3章 电力储能系统的组成及工作原理",
+      "sha256": "e34c8294614ee2881450ffdbf3de00b51bd587924536192ce859e3e197189408",
+      "page_count": 17
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/4.1 抽水蓄能电站的规划配置.pdf",
+      "source_file": "4.1 抽水蓄能电站的规划配置.pdf",
+      "normalized_file": "chapter-4-4.1-.pdf",
+      "chapter_id": 4,
+      "chapter": "第4章 电力储能系统的规划配置",
+      "sha256": "18f92aa1da192c852df71ac2f759201ef054a81ad2d6d2a9a6c9d8261d561d3f",
+      "page_count": 37
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/4.2 电化学储能系统的规划配置.pdf",
+      "source_file": "4.2 电化学储能系统的规划配置.pdf",
+      "normalized_file": "chapter-4-4.2-.pdf",
+      "chapter_id": 4,
+      "chapter": "第4章 电力储能系统的规划配置",
+      "sha256": "f61dd787cbef5eaecda2cf10e0c042b3eb73f7634082ec4cbff240d4d0f6d84b",
+      "page_count": 108
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/4.3 电池储能系统集成技术.pdf",
+      "source_file": "4.3 电池储能系统集成技术.pdf",
+      "normalized_file": "chapter-4-4.3-.pdf",
+      "chapter_id": 4,
+      "chapter": "第4章 电力储能系统的规划配置",
+      "sha256": "1e766d4ffddd78d65fee50e860f1817d91328d48f99535060229d2f557272f70",
+      "page_count": 12
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/5.1 电力储能系统的接入.pdf",
+      "source_file": "5.1 电力储能系统的接入.pdf",
+      "normalized_file": "chapter-5-5.1-.pdf",
+      "chapter_id": 5,
+      "chapter": "第5章 电力储能系统的接入与运行控制",
+      "sha256": "faf1a965ba34d364c69ba18618c3d82aeffc67ae12bd89dcc3bb2a9b79ae4477",
+      "page_count": 17
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/5.2 电力储能系统的运行控制.pdf",
+      "source_file": "5.2 电力储能系统的运行控制.pdf",
+      "normalized_file": "chapter-5-5.2-.pdf",
+      "chapter_id": 5,
+      "chapter": "第5章 电力储能系统的接入与运行控制",
+      "sha256": "26b7b3151fc83875160053f58acd7b1d5ca471c89a90a8c8c1c566be19868192",
+      "page_count": 18
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/5.3 电力储能系统的运行维护.pdf",
+      "source_file": "5.3 电力储能系统的运行维护.pdf",
+      "normalized_file": "chapter-5-5.3-.pdf",
+      "chapter_id": 5,
+      "chapter": "第5章 电力储能系统的接入与运行控制",
+      "sha256": "f564cfe538e34ac847e6ba6ad60f53c0758edf6dbea65c3c6c133489cc5dc31b",
+      "page_count": 5
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/5.4 电力储能系统的运行案例.pdf",
+      "source_file": "5.4 电力储能系统的运行案例.pdf",
+      "normalized_file": "chapter-5-5.4-.pdf",
+      "chapter_id": 5,
+      "chapter": "第5章 电力储能系统的接入与运行控制",
+      "sha256": "d0c165f9a6ee1c32927c0e462e76d9aafcd5ec3fbed2ca8c4989649de08d9285",
+      "page_count": 15
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/6.1 电力储能系统的性能检测.pdf",
+      "source_file": "6.1 电力储能系统的性能检测.pdf",
+      "normalized_file": "chapter-6-6.1-.pdf",
+      "chapter_id": 6,
+      "chapter": "第6章 电力储能系统的性能检测与评估",
+      "sha256": "0862d0654fbd36f48e73d182d9957c1739fd00004f9b580a81ff6ce9f082ea0b",
+      "page_count": 18
+    },
+    {
+      "archive_file": "教材课件分章节pdf版/6.2 电力储能系统的系统评估.pdf",
+      "source_file": "6.2 电力储能系统的系统评估.pdf",
+      "normalized_file": "chapter-6-6.2-.pdf",
+      "chapter_id": 6,
+      "chapter": "第6章 电力储能系统的性能检测与评估",
+      "sha256": "3078e09d5daf25f62f68c6adbda67f61116ac928fc301491d26bca5d3f1a6d1c",
+      "page_count": 4
+    }
+  ]
+}
