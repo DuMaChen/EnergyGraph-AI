@@ -229,7 +229,11 @@ async def sync_moodle_grade(
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
                 url,
-                headers={"cookie": cookie, "X-Agent-Bridge-Token": bridge_token, "Content-Type": "application/json"},
+                # Moodle validates the request Host against $CFG->wwwroot during
+                # session bootstrap; without the public host header an internal
+                # http://moodle call gets a redirect-style error even with a
+                # perfectly valid session cookie.
+                headers={"cookie": cookie, "X-Agent-Bridge-Token": bridge_token, "Content-Type": "application/json", "Host": (os.getenv("SITE_HOST", "").strip() or "energygraph.icu")},
                 json=payload,
             )
     except httpx.HTTPError:
@@ -238,6 +242,14 @@ async def sync_moodle_grade(
     if response.status_code != 200:
         logger.warning("moodle grade bridge HTTP %s assignment=%s", response.status_code, assignment_id)
         return {"status": "failed", "code": "bridge_http_error", "http_status": response.status_code}
+    # Moodle AJAX error pages can come back with HTTP 200; trust the JSON body.
+    try:
+        body = response.json()
+    except ValueError:
+        body = {}
+    if not isinstance(body, dict) or body.get("status") != "synced":
+        logger.warning("moodle grade bridge body not synced assignment=%s body=%s", assignment_id, str(body)[:200])
+        return {"status": "failed", "code": "bridge_body_error", "body": str(body)[:200]}
     return {"status": "synced"}
 
 
@@ -1198,6 +1210,10 @@ def normalize_workflow_text(text: str) -> str:
         if not isinstance(value, str) or not value.strip():
             continue
         val_str = value.strip()
+        # Strip leading routing-context echo lines (模式：… / 角色：…) BEFORE the
+        # leak check, so an otherwise good answer that merely carries a routing
+        # prefix is cleaned instead of being discarded wholesale.
+        val_str = re.sub(r"^(?:\s*(?:模式|角色)：[^\n]{0,40}\n+)+", "", val_str).strip()
         # REJECT any field that echoes prompt wrappers, system instructions, or internal contexts
         if any(marker in val_str for marker in prompt_leak_markers):
             continue
@@ -1212,7 +1228,15 @@ def normalize_workflow_text(text: str) -> str:
         val_str = re.sub(r"^answer\d+[:：]\s*", "", val_str, flags=re.IGNORECASE).strip()
         if val_str:
             fields.append(val_str)
-    return "\n\n".join(fields)
+    joined = "\n\n".join(fields)
+    if joined.startswith("```"):
+        joined = joined[3:]
+        if joined.lower().startswith("json"):
+            joined = joined[4:]
+        joined = joined.rstrip()
+        if joined.endswith("```"):
+            joined = joined[:-3].rstrip()
+    return joined
 
 
 def build_teacher_rescue_parameters(parameters: dict[str, Any]) -> dict[str, str]:
@@ -3840,8 +3864,66 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'deterministic_insufficient_learning_evidence'}, ensure_ascii=False)}\n\n".encode("utf-8")
                 return
             if workflow_intent == "question_draft" or mode == "question_draft":
-                async for event in xingchen_stream(parameters, identity, request_id, retrieved_sources=retrieved_sources):
-                    yield f"event: {event['event']}\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
+                # Buffer the draft, then decide: the cloud Workflow's question
+                # node is configured to withhold answers, so a draft that leaves
+                # the answer undecided ("请随机选择") is unusable for teaching and
+                # gets one strict retry before anything is shown to the teacher.
+                draft_chunks: list[str] = []
+                draft_sources: list[dict[str, Any]] = []
+                draft_error: dict[str, Any] | None = None
+
+                async def collect_draft(params: dict[str, Any]) -> int:
+                    nonlocal draft_error
+                    total = 0
+                    async for event in xingchen_stream(params, identity, request_id, retrieved_sources=retrieved_sources):
+                        if event["event"] == "token":
+                            txt = str(event["data"].get("text", ""))
+                            total += len(txt)
+                            draft_chunks.append(txt)
+                        elif event["event"] == "source":
+                            draft_sources.append(event.get("data") or {})
+                        elif event["event"] == "error":
+                            draft_error = event.get("data") or {}
+                    return total
+
+                first_len = await collect_draft(parameters)
+                draft_text = "".join(draft_chunks)
+                has_options = bool(re.search(r"(?:^|\n)\s*A[\.、：:]", draft_text)) or "A." in draft_text
+                has_answer = (
+                    ("标准答案" in draft_text)
+                    or ("正确答案" in draft_text)
+                    or bool(re.search(r"答案[:：]", draft_text))
+                    or bool(re.search(r"(?:选项|答案)\s*[A-D]\s*(?:是)?正确|正确选项|本题选", draft_text))
+                )
+                ambiguous = (
+                    ("请随机选择" in draft_text)
+                    or ("随机选择其中一个" in draft_text)
+                    or ("答案选项：" in draft_text and "标准答案" not in draft_text and "正确答案" not in draft_text)
+                    or (has_options and not has_answer)
+                )
+                if ambiguous or (first_len == 0 and draft_error):
+                    if draft_error and draft_error.get("code") == "workflow_prompt_echo_rejected":
+                        await reset_workflow_scenario_state(identity, request_id)
+                    input_name = os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT")
+                    retry_instruction = (
+                        str(parameters.get(input_name, ""))[:3500]
+                        + "\n\n【补严格要求】上一稿未给出确定答案，判定为不合格。重新输出时每道题必须给出唯一确定的【标准答案】字母并附【名师解析】，"
+                        "严禁出现“请随机选择”“答案待定”等表述；不要使用代码块围栏，直接输出题目文本。"
+                    )
+                    retry_params = {input_name: retry_instruction[: int(os.getenv("AGENT_MAX_INPUT_CHARS", "6000"))]}
+                    print(f"[QUESTION_DRAFT] ambiguous or empty draft (len={first_len}, ambiguous={ambiguous}, error={draft_error}), retrying with strict answer requirement", flush=True)
+                    draft_chunks.clear()
+                    draft_error = None
+                    await collect_draft(retry_params)
+                    draft_text = "".join(draft_chunks)
+
+                if draft_text:
+                    yield f"event: token\ndata: {json.dumps({'text': draft_text, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                    for source in draft_sources:
+                        yield f"event: source\ndata: {json.dumps(source, ensure_ascii=False)}\n\n".encode("utf-8")
+                elif draft_error:
+                    yield f"event: error\ndata: {json.dumps(draft_error, ensure_ascii=False)}\n\n".encode("utf-8")
+                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'question_draft_served'}, ensure_ascii=False)}\n\n".encode("utf-8")
                 return
 
             if mode == "teacher_assistant":
