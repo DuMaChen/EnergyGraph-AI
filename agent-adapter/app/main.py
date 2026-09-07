@@ -1169,9 +1169,6 @@ PROMPT_LEAK_MARKERS = [
         "你是一名电力系统储能技术的工作人员，请和我情景演绎",
         "规则1出题：",
         "知识点仅限知识库5内容",
-        # Upstream demo/few-shot dialogues that carry placeholder citations
-        "来源文件：xxx.pdf",
-        "页码：yyy",
     ]
 
 
@@ -1180,6 +1177,26 @@ def detect_prompt_echo(text: str) -> bool:
     answering, which on this Workflow indicates the persistent scenario-state
     branch hijacked the request (the state variable must be reset)."""
     return any(marker in str(text or "") for marker in PROMPT_LEAK_MARKERS)
+
+
+PLACEHOLDER_CITATION_RE = re.compile(r"\s*\[?来源文件：xxx\.pdf[^\]]*\]?")
+DEMO_DIALOGUE_RE = re.compile(r"学生\s*[:：][\s\S]{0,400}老师\s*[:：]")
+
+
+def looks_like_demo_dialogue(text: str) -> bool:
+    """True when the field is the Workflow's built-in 学生/老师 few-shot demo
+    transcript instead of a real answer to the student's request."""
+    return bool(DEMO_DIALOGUE_RE.search(str(text or "")))
+
+
+def looks_like_scenario_farewell(text: str) -> bool:
+    """True when the response is only a scenario/quiz farewell produced by the
+    Workflow's decision node (the persistent state flag was just cleared) and
+    no question follows; the caller must retry the generation."""
+    t = str(text or "")
+    if "【题干】" in t:
+        return False
+    return any(k in t for k in ["已退出情景演绎", "已停止情景演绎", "已停止出题", "欢迎随时告知", "随时都可以跟我讲", "随时跟我讲"])
 
 
 def normalize_workflow_text(text: str) -> str:
@@ -1192,6 +1209,8 @@ def normalize_workflow_text(text: str) -> str:
     prompt_leak_markers = PROMPT_LEAK_MARKERS
     if not normalized.startswith("{"):
         if any(marker in normalized for marker in prompt_leak_markers):
+            return ""
+        if looks_like_demo_dialogue(normalized):
             return ""
         return normalized
     try:
@@ -1214,8 +1233,15 @@ def normalize_workflow_text(text: str) -> str:
         # leak check, so an otherwise good answer that merely carries a routing
         # prefix is cleaned instead of being discarded wholesale.
         val_str = re.sub(r"^(?:\s*(?:模式|角色)：[^\n]{0,40}\n+)+", "", val_str).strip()
+        # Strip meaningless placeholder citations but KEEP the answer text: the
+        # Workflow appends "[来源文件：xxx.pdf；页码：yyy]" to otherwise good
+        # questions, and rejecting the whole field would discard them.
+        val_str = PLACEHOLDER_CITATION_RE.sub("", val_str).strip()
         # REJECT any field that echoes prompt wrappers, system instructions, or internal contexts
         if any(marker in val_str for marker in prompt_leak_markers):
+            continue
+        # REJECT the built-in few-shot demo transcript (学生: … 老师: …)
+        if looks_like_demo_dialogue(val_str):
             continue
         # Match any field that looks like output or has substantial content
         if not (k_lower.startswith(("ans", "resp", "content", "result", "output", "text", "report", "diag", "data"))) and len(val_str) < 50:
@@ -3256,6 +3282,11 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     history_context="",
                 )
                 
+                # Clear the Workflow's persistent scenario flag up front: if it is
+                # still '1', the decision node answers with a farewell instead of
+                # a question and pollutes the first generation attempt.
+                await reset_workflow_scenario_state(identity, request_id)
+
                 quiz_stats: dict[str, Any] = {}
                 async for sse_chunk in stream_quiz_question_sse(diag_params, identity, request_id, retrieved_sources, quiz_stats):
                     yield sse_chunk
@@ -3264,7 +3295,7 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 first_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
-                if not is_usable_quiz_meta(first_parsed_meta):
+                if not is_usable_quiz_meta(first_parsed_meta) or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
                         await reset_workflow_scenario_state(identity, request_id)
                     retry_params = build_parameters(
@@ -3442,8 +3473,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                 duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
-                if (not is_usable_quiz_meta(next_parsed_meta)) or duplicated:
+                if (not is_usable_quiz_meta(next_parsed_meta)) or duplicated or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
+                        await reset_workflow_scenario_state(identity, request_id)
+                    elif looks_like_scenario_farewell(full_quiz_text):
                         await reset_workflow_scenario_state(identity, request_id)
                     retry_topic = COURSE_DIAGNOSIS_TOPIC_ROTATION[next_step % len(COURSE_DIAGNOSIS_TOPIC_ROTATION)]
                     forbidden_stems = [str(r.get("stem") or r.get("question") or "") for r in st.diag_records]
@@ -3541,8 +3574,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                 duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
-                if (not is_usable_quiz_meta(next_parsed_meta)) or duplicated:
+                if (not is_usable_quiz_meta(next_parsed_meta)) or duplicated or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
+                        await reset_workflow_scenario_state(identity, request_id)
+                    elif looks_like_scenario_farewell(full_quiz_text):
                         await reset_workflow_scenario_state(identity, request_id)
                     retry_topic = COURSE_DIAGNOSIS_TOPIC_ROTATION[next_step % len(COURSE_DIAGNOSIS_TOPIC_ROTATION)]
                     retry_params = build_parameters(
@@ -3812,8 +3847,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
-                if not is_usable_quiz_meta(parsed_meta):
+                if not is_usable_quiz_meta(parsed_meta) or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
+                        await reset_workflow_scenario_state(identity, request_id)
+                    elif looks_like_scenario_farewell(full_quiz_text):
                         await reset_workflow_scenario_state(identity, request_id)
                     st_for_dedup = await teaching_state_manager.get_or_create(identity.uid, str(client_sess))
                     retry_params = build_parameters(

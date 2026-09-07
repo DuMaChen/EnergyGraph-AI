@@ -54,14 +54,40 @@ class TestHonestFallbacks(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(is_usable_quiz_meta(no_answer))
 
     def test_placeholder_citation_demo_dialogue_rejected(self):
-        """The workflow demo dialogue with placeholder citations must be detected
-        and sanitized to empty instead of shown to students."""
+        """The workflow's built-in 学生/老师 few-shot demo transcript must be
+        sanitized to empty instead of shown to students."""
         demo = (
             "学生: 请问电力系统储能技术有哪些类型？\n\n"
             "老师: 主要分为蓄电池、超级电容器等类型。[来源文件：xxx.pdf；页码：yyy]"
         )
-        self.assertTrue(detect_prompt_echo(demo))
-        self.assertEqual(normalize_workflow_text(demo), "")
+        self.assertFalse(detect_prompt_echo(demo))  # placeholder no longer a leak marker
+        self.assertTrue(normalize_workflow_text(demo) == "")  # demo dialogue still rejected
+
+    def test_good_question_with_placeholder_citation_survives(self):
+        """A real question that merely carries a placeholder citation must NOT be
+        discarded: the citation is stripped and the question text survives."""
+        import json as _json
+        answer = (
+            "【题干】关于抽水蓄能与压缩空气储能系统的启停特性，以下哪项描述是正确的？\n"
+            "A. 抽水蓄能启停更快\nB. 压缩空气储能启停更快\nC. 两者相同\nD. 都无法启动\n"
+            "【标准答案】A\n【核心考点】抽水蓄能与CAES启停特性\n"
+            "【知识溯源】[来源文件：xxx.pdf；页码：yyy]"
+        )
+        raw = _json.dumps({"answer1": answer, "ansewr9": "", "answer10": ""}, ensure_ascii=False)
+        cleaned = normalize_workflow_text(raw)
+        self.assertIn("【标准答案】A", cleaned)
+        self.assertIn("【题干】", cleaned)
+        self.assertNotIn("xxx.pdf", cleaned)
+
+    def test_scenario_farewell_detected_and_question_not(self):
+        """A decision-node farewell without any question must be retryable; a
+        real question (even with polite preamble) must not be flagged."""
+        from app.main import looks_like_scenario_farewell
+        farewell = "好的，已退出情景演绎，若后续有其他需求，欢迎随时告知。"
+        self.assertTrue(looks_like_scenario_farewell(farewell))
+        with_question = "好的。\n【题干】关于储能技术分类，下列说法正确的是：\nA. 甲\nB. 乙\nC. 丙\nD. 丁\n【标准答案】A"
+        self.assertFalse(looks_like_scenario_farewell(with_question))
+        self.assertFalse(looks_like_scenario_farewell("关于抽水蓄能的效率问题，请看题干。"))
 
     def test_normalize_stem_dedup(self):
         a = "储能系统在新型电力系统中发挥着多时间尺度的调节作用，以下关于各类储能响应速度的排序正确的是："
