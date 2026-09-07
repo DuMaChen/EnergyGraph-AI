@@ -82,7 +82,7 @@ SOURCE_PATTERN = re.compile(
 # This narrow guard catches explicit requests to discard course boundaries or
 # fabricate evidence before either Mock or real Workflow output is displayed.
 # It complements, rather than replaces, the Workflow safety branch.
-POLICY_PATTERN = re.compile(r"(?:忽略|绕过|覆盖)(?:课程资料|知识库|系统规则)|(?:编造|伪造|捏造)(?:实验数据|数据集|文献|页码|引用)", re.IGNORECASE)
+POLICY_PATTERN = re.compile(r"(?:忽略|绕过|覆盖)(?:课程资料|知识库|系统规则)|(?:编造|伪造|捏造)[^\n]{0,8}?(?:实验数据|数据集|文献|页码|引用)", re.IGNORECASE)
 # These fixed questions make a release decision reproducible.  A teacher may
 # inspect the wording, but cannot replace the cases with a self-authored
 # "passed" flag; each case must be executed against the configured Workflow.
@@ -3708,35 +3708,40 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     "【重要输出指令】：请以储能电站老运维师傅（张师傅）第一人称口吻热情回复学生，生动介绍高压变流柜与电池舱现状，并引导他提出想排查的现场问题。严格遵守零表情符号规范。"
                 )
                 engineer_params = build_parameters(identity, "scenario", engineer_prompt, graph_context, "", "", retrieval_context=retrieval_context, history_context="")
-                emitted_tokens = 0
+                # Buffered like the quiz paths: an unusable or farewell opening is
+                # retried silently and only a validated role opening reaches the
+                # student.
+                scene_chunks: list[str] = []
                 scene_error: dict[str, Any] | None = None
-                async for event in xingchen_stream(engineer_params, identity, request_id, retrieved_sources=retrieved_sources):
-                    if event["event"] == "token":
-                        raw_tok = str(event["data"].get("text", ""))
-                        if raw_tok:
-                            emitted_tokens += 1
-                            yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
-                    elif event["event"] == "source":
-                        yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
-                    elif event["event"] == "error":
-                        scene_error = event.get("data") or {}
 
-                if emitted_tokens == 0:
-                    if scene_error and scene_error.get("code") == "workflow_prompt_echo_rejected":
-                        await reset_workflow_scenario_state(identity, request_id)
-                    print(f"[SCENARIO] engineer opening failed (error={scene_error}), retrying once", flush=True)
-                    async for event in xingchen_stream(engineer_params, identity, request_id, retrieved_sources=retrieved_sources):
+                async def collect_scene(params: dict[str, Any]) -> int:
+                    nonlocal scene_error
+                    total = 0
+                    async for event in xingchen_stream(params, identity, request_id, retrieved_sources=retrieved_sources):
                         if event["event"] == "token":
-                            raw_tok = str(event["data"].get("text", ""))
-                            if raw_tok:
-                                emitted_tokens += 1
-                                yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                            txt = str(event["data"].get("text", ""))
+                            total += len(txt)
+                            scene_chunks.append(txt)
                         elif event["event"] == "source":
-                            yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
-                        elif event["event"] == "error":
                             pass
+                        elif event["event"] == "error":
+                            scene_error = event.get("data") or {}
+                    return total
 
-                if emitted_tokens == 0:
+                first_len = await collect_scene(engineer_params)
+                scene_text = "".join(scene_chunks)
+                if first_len == 0 or looks_like_scenario_farewell(scene_text) or detect_prompt_echo(scene_text):
+                    if (scene_error and scene_error.get("code") == "workflow_prompt_echo_rejected") or looks_like_scenario_farewell(scene_text):
+                        await reset_workflow_scenario_state(identity, request_id)
+                    print(f"[SCENARIO] engineer opening unusable (len={first_len}, farewell={looks_like_scenario_farewell(scene_text)}, error={scene_error}), retrying once", flush=True)
+                    scene_chunks.clear()
+                    scene_error = None
+                    await collect_scene(engineer_params)
+                    scene_text = "".join(scene_chunks)
+
+                if scene_text and not looks_like_scenario_farewell(scene_text) and not detect_prompt_echo(scene_text):
+                    yield f"event: token\ndata: {json.dumps({'text': scene_text, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                else:
                     # Roll the local scene state back: never fake the role's voice.
                     print(f"[SCENARIO] engineer opening unavailable after retry (last_error={scene_error}), serving honest failure", flush=True)
                     await teaching_state_manager.set_scene(identity.uid, str(client_sess), 0, "")
@@ -3744,7 +3749,7 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     fail_txt = "【情景演绎暂时不可用】角色扮演大模型服务本次未返回有效内容（已自动重试一次）。请稍后重新输入“扮演电厂运维师傅”或“扮演主讲老师”再次开始。"
                     yield f"event: token\ndata: {json.dumps({'text': fail_txt, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
 
-                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'scenario_started' if emitted_tokens else 'scenario_start_failed'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'scenario_started' if scene_text and not looks_like_scenario_farewell(scene_text) and not detect_prompt_echo(scene_text) else 'scenario_start_failed'}, ensure_ascii=False)}\n\n".encode("utf-8")
                 return
 
             if workflow_intent == "scenario_start_teacher":
@@ -3756,35 +3761,38 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     "【重要输出指令】：请以主讲名师的第一人称启发式口吻热情向学生问好，简要提及课程近期的重难点（如变流器构网控制、容量规划配置），询问他想探讨哪个机理。严格遵守零表情符号规范。"
                 )
                 teacher_params = build_parameters(identity, "scenario", teacher_prompt, graph_context, "", "", retrieval_context=retrieval_context, history_context="")
-                emitted_tokens = 0
+                scene_chunks: list[str] = []
                 scene_error: dict[str, Any] | None = None
-                async for event in xingchen_stream(teacher_params, identity, request_id, retrieved_sources=retrieved_sources):
-                    if event["event"] == "token":
-                        raw_tok = str(event["data"].get("text", ""))
-                        if raw_tok:
-                            emitted_tokens += 1
-                            yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
-                    elif event["event"] == "source":
-                        yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
-                    elif event["event"] == "error":
-                        scene_error = event.get("data") or {}
 
-                if emitted_tokens == 0:
-                    if scene_error and scene_error.get("code") == "workflow_prompt_echo_rejected":
-                        await reset_workflow_scenario_state(identity, request_id)
-                    print(f"[SCENARIO] teacher opening failed (error={scene_error}), retrying once", flush=True)
-                    async for event in xingchen_stream(teacher_params, identity, request_id, retrieved_sources=retrieved_sources):
+                async def collect_scene(params: dict[str, Any]) -> int:
+                    nonlocal scene_error
+                    total = 0
+                    async for event in xingchen_stream(params, identity, request_id, retrieved_sources=retrieved_sources):
                         if event["event"] == "token":
-                            raw_tok = str(event["data"].get("text", ""))
-                            if raw_tok:
-                                emitted_tokens += 1
-                                yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                            txt = str(event["data"].get("text", ""))
+                            total += len(txt)
+                            scene_chunks.append(txt)
                         elif event["event"] == "source":
-                            yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
-                        elif event["event"] == "error":
                             pass
+                        elif event["event"] == "error":
+                            scene_error = event.get("data") or {}
+                    return total
 
-                if emitted_tokens == 0:
+                first_len = await collect_scene(teacher_params)
+                scene_text = "".join(scene_chunks)
+                if first_len == 0 or looks_like_scenario_farewell(scene_text) or detect_prompt_echo(scene_text):
+                    if (scene_error and scene_error.get("code") == "workflow_prompt_echo_rejected") or looks_like_scenario_farewell(scene_text):
+                        await reset_workflow_scenario_state(identity, request_id)
+                    print(f"[SCENARIO] teacher opening unusable (len={first_len}, farewell={looks_like_scenario_farewell(scene_text)}, error={scene_error}), retrying once", flush=True)
+                    scene_chunks.clear()
+                    scene_error = None
+                    await collect_scene(teacher_params)
+                    scene_text = "".join(scene_chunks)
+
+                scene_ok = bool(scene_text) and not looks_like_scenario_farewell(scene_text) and not detect_prompt_echo(scene_text)
+                if scene_ok:
+                    yield f"event: token\ndata: {json.dumps({'text': scene_text, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                else:
                     # Roll the local scene state back: never fake the role's voice.
                     print(f"[SCENARIO] teacher opening unavailable after retry (last_error={scene_error}), serving honest failure", flush=True)
                     await teaching_state_manager.set_scene(identity.uid, str(client_sess), 0, "")
@@ -3792,7 +3800,7 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     fail_txt = "【情景演绎暂时不可用】角色扮演大模型服务本次未返回有效内容（已自动重试一次）。请稍后重新输入“扮演电厂运维师傅”或“扮演主讲老师”再次开始。"
                     yield f"event: token\ndata: {json.dumps({'text': fail_txt, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
 
-                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'scenario_started' if emitted_tokens else 'scenario_start_failed'}, ensure_ascii=False)}\n\n".encode("utf-8")
+                yield f"event: done\ndata: {json.dumps({'request_id': request_id, 'reason': 'scenario_started' if scene_ok else 'scenario_start_failed'}, ensure_ascii=False)}\n\n".encode("utf-8")
                 return
 
             # 5. Quiz stop branch
