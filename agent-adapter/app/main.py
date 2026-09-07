@@ -1205,6 +1205,57 @@ def looks_like_scenario_farewell(text: str) -> bool:
     return any(k in t for k in ["已退出情景演绎", "已停止情景演绎", "已停止出题", "欢迎随时告知", "随时都可以跟我讲", "随时跟我讲"])
 
 
+GRADING_ANSWER_RE = re.compile(
+    r"(?:标准正确选项|本题正确选项|正确选项|标准答案|正确答案|本题答案)[为是]?[:：?？]?\s*([A-D])"
+)
+
+
+def extract_answer_from_grading_text(text: str) -> str | None:
+    """Pull the true answer letter out of the Workflow grading branch's reply
+    (e.g. "回答错误。…标准正确选项为D。")."""
+    m = GRADING_ANSWER_RE.search(str(text or ""))
+    return m.group(1) if m else None
+
+
+async def recover_missing_quiz_answer(
+    identity: Identity,
+    request_id: str,
+    meta: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Fill in the answer for a parsed question that has options but no letter.
+
+    The Workflow's quiz branch computes the correct answer (出题模型B → 变量
+    存储器) but its end-node binding drops that field from the HTTP payload.
+    The grading branch still reads the persisted variable, so a probe answer
+    reliably reveals the true letter ("…标准正确选项为X。"). The probe
+    response itself is never shown to the student and nothing is invented:
+    when the probe fails, the question is treated as a failed generation."""
+    if not isinstance(meta, dict):
+        return None
+    ans = str(meta.get("correct") or meta.get("correct_answer") or "").upper().strip()
+    if ans in {"A", "B", "C", "D"}:
+        return meta
+    opts = meta.get("options")
+    if not isinstance(opts, dict) or len({k for k in opts if str(k).upper() in {"A", "B", "C", "D"}}) < 2:
+        return None
+    probe_chunks: list[str] = []
+    probe_params = {os.getenv("XINGCHEN_INPUT_NAME", "AGENT_USER_INPUT"): "A"}
+    async for event in xingchen_stream(probe_params, identity, request_id, mode="qa"):
+        if event["event"] == "token":
+            probe_chunks.append(str(event["data"].get("text", "")))
+        elif event["event"] == "error":
+            break
+    letter = extract_answer_from_grading_text("".join(probe_chunks))
+    if not letter:
+        print(f"[QUIZ] answer probe failed to reveal a letter (reply={''.join(probe_chunks)[:120]})", flush=True)
+        return None
+    print(f"[QUIZ] recovered missing answer via grading probe: {letter}", flush=True)
+    filled = dict(meta)
+    filled["correct"] = letter
+    filled["correct_answer"] = letter
+    return filled
+
+
 def normalize_workflow_text(text: str) -> str:
     """Turn provider wrappers into user-readable text and reject empty shells."""
     normalized = str(text or "").strip()
@@ -3303,6 +3354,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 first_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                if first_parsed_meta and not is_usable_quiz_meta(first_parsed_meta):
+                    first_parsed_meta = await recover_missing_quiz_answer(identity, request_id, first_parsed_meta)
                 if not is_usable_quiz_meta(first_parsed_meta) or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected" or looks_like_scenario_farewell(full_quiz_text):
                         await reset_workflow_scenario_state(identity, request_id)
@@ -3322,6 +3375,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         pass
                     full_quiz_text = retry_stats["full_text"]
                     first_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                    if first_parsed_meta and not is_usable_quiz_meta(first_parsed_meta):
+                        first_parsed_meta = await recover_missing_quiz_answer(identity, request_id, first_parsed_meta)
 
                 if not is_usable_quiz_meta(first_parsed_meta):
                     print(f"[DIAGNOSIS] first-question unavailable after retry, serving honest failure (last_error={upstream_error})", flush=True)
@@ -3477,6 +3532,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                if next_parsed_meta and not is_usable_quiz_meta(next_parsed_meta):
+                    next_parsed_meta = await recover_missing_quiz_answer(identity, request_id, next_parsed_meta)
                 dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                 duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
@@ -3505,6 +3562,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         pass
                     full_quiz_text = retry_stats["full_text"]
                     next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                    if next_parsed_meta and not is_usable_quiz_meta(next_parsed_meta):
+                        next_parsed_meta = await recover_missing_quiz_answer(identity, request_id, next_parsed_meta)
                     dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                     duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
@@ -3577,6 +3636,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                if next_parsed_meta and not is_usable_quiz_meta(next_parsed_meta):
+                    next_parsed_meta = await recover_missing_quiz_answer(identity, request_id, next_parsed_meta)
                 dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                 duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
@@ -3602,6 +3663,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         pass
                     full_quiz_text = retry_stats["full_text"]
                     next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                    if next_parsed_meta and not is_usable_quiz_meta(next_parsed_meta):
+                        next_parsed_meta = await recover_missing_quiz_answer(identity, request_id, next_parsed_meta)
                     dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                     duplicated = bool(dup_stem and dup_stem in st.asked_stems)
 
@@ -3852,6 +3915,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 upstream_error = quiz_stats["error"]
 
                 parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                if parsed_meta and not is_usable_quiz_meta(parsed_meta):
+                    parsed_meta = await recover_missing_quiz_answer(identity, request_id, parsed_meta)
                 if not is_usable_quiz_meta(parsed_meta) or looks_like_scenario_farewell(full_quiz_text):
                     if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
                         await reset_workflow_scenario_state(identity, request_id)
@@ -3874,6 +3939,8 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         pass
                     full_quiz_text = retry_stats["full_text"]
                     parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
+                    if parsed_meta and not is_usable_quiz_meta(parsed_meta):
+                        parsed_meta = await recover_missing_quiz_answer(identity, request_id, parsed_meta)
 
                 if not is_usable_quiz_meta(parsed_meta):
                     print(f"[QUIZ] single-question unavailable after retry, serving honest failure (last_error={upstream_error})", flush=True)

@@ -79,6 +79,17 @@ class TestHonestFallbacks(unittest.IsolatedAsyncioTestCase):
         self.assertIn("【题干】", cleaned)
         self.assertNotIn("xxx.pdf", cleaned)
 
+    def test_grading_answer_extraction(self):
+        """The grading-branch probe reply must reveal the true answer letter in
+        both correct and incorrect phrasings."""
+        from app.main import extract_answer_from_grading_text
+        self.assertEqual(extract_answer_from_grading_text("回答错误。学生选择了选项A，标准正确选项为D。"), "D")
+        self.assertEqual(extract_answer_from_grading_text("回答正确！本题正确选项为：C"), "C")
+        self.assertEqual(extract_answer_from_grading_text("本题答案为 B。知识点解析：……"), "B")
+        self.assertEqual(extract_answer_from_grading_text("正确答案是A"), "A")
+        self.assertIsNone(extract_answer_from_grading_text("好的，已退出情景演绎。"))
+        self.assertIsNone(extract_answer_from_grading_text(""))
+
     def test_scenario_farewell_detected_and_question_not(self):
         """A decision-node farewell without any question must be retryable; a
         real question (even with polite preamble) must not be flagged."""
