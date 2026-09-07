@@ -976,7 +976,11 @@ async def stream_quiz_question_sse(
     request_id: str,
     retrieved_sources: list[dict[str, Any]] | None,
     stats: dict[str, Any],
+    emit: bool = True,
 ) -> AsyncIterator[bytes]:
+    """Stream one quiz generation turn. With emit=False nothing is sent to the
+    client: the call only buffers the draft so the caller can validate it and
+    retry before anything reaches the student."""
     """Stream one quiz/diagnosis generation turn to the client while capturing
     full text, emitted visible size and the upstream error for caller retries."""
     chunks: list[str] = []
@@ -999,16 +1003,18 @@ async def stream_quiz_question_sse(
             if hide_pos != -1:
                 if not hidden_tag_found:
                     hidden_tag_found = True
-                    if hide_pos > emitted:
+                    if hide_pos > emitted and emit:
                         delta_chunk = stream_buffer[emitted:hide_pos]
                         if delta_chunk:
                             yield f"event: token\ndata: {json.dumps({'text': delta_chunk, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
                     emitted = hide_pos
             elif not hidden_tag_found:
-                yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
+                if emit:
+                    yield f"event: token\ndata: {json.dumps({'text': raw_tok, 'request_id': request_id}, ensure_ascii=False)}\n\n".encode("utf-8")
                 emitted += len(raw_tok)
         elif event["event"] == "source":
-            yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
+            if emit:
+                yield f"event: source\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n".encode("utf-8")
         elif event["event"] == "error":
             error_data = event.get("data") or {}
     stats["full_text"] = "".join(chunks)
@@ -3287,16 +3293,18 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 # a question and pollutes the first generation attempt.
                 await reset_workflow_scenario_state(identity, request_id)
 
+                # Drafts are buffered (emit=False): an unusable first attempt is
+                # retried silently and only the validated question is ever shown.
                 quiz_stats: dict[str, Any] = {}
-                async for sse_chunk in stream_quiz_question_sse(diag_params, identity, request_id, retrieved_sources, quiz_stats):
-                    yield sse_chunk
+                async for _ in stream_quiz_question_sse(diag_params, identity, request_id, retrieved_sources, quiz_stats, emit=False):
+                    pass
                 full_quiz_text = quiz_stats["full_text"]
-                emitted_chars = quiz_stats["emitted"]
+                emitted_chars = 0
                 upstream_error = quiz_stats["error"]
 
                 first_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
                 if not is_usable_quiz_meta(first_parsed_meta) or looks_like_scenario_farewell(full_quiz_text):
-                    if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected":
+                    if upstream_error and upstream_error.get("code") == "workflow_prompt_echo_rejected" or looks_like_scenario_farewell(full_quiz_text):
                         await reset_workflow_scenario_state(identity, request_id)
                     retry_params = build_parameters(
                         identity,
@@ -3308,12 +3316,11 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                         retrieval_context=retrieval_context,
                         history_context="",
                     )
-                    print(f"[DIAGNOSIS] first-question generation failed (emitted={emitted_chars}, error={upstream_error}), retrying with compact instruction", flush=True)
+                    print(f"[DIAGNOSIS] first-question generation failed (len={len(full_quiz_text)}, error={upstream_error}), retrying with compact instruction", flush=True)
                     retry_stats: dict[str, Any] = {}
-                    async for sse_chunk in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats):
-                        yield sse_chunk
+                    async for _ in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats, emit=False):
+                        pass
                     full_quiz_text = retry_stats["full_text"]
-                    emitted_chars += retry_stats["emitted"]
                     first_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
 
                 if not is_usable_quiz_meta(first_parsed_meta):
@@ -3463,10 +3470,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 yield f"event: session_state\ndata: {json.dumps({'scene_mode': 4, 'scene_title': f'互动学情诊断测评（第 {next_step} 题 · 已完成 {done_cnt} 题）', 'scene_role_name': '互动学情诊断测评', 'done_count': done_cnt}, ensure_ascii=False)}\n\n".encode("utf-8")
                 
                 quiz_stats: dict[str, Any] = {}
-                async for sse_chunk in stream_quiz_question_sse(diag_params, identity, request_id, retrieved_sources, quiz_stats):
-                    yield sse_chunk
+                async for _ in stream_quiz_question_sse(diag_params, identity, request_id, retrieved_sources, quiz_stats, emit=False):
+                    pass
                 full_quiz_text = quiz_stats["full_text"]
-                emitted_chars = quiz_stats["emitted"]
+                emitted_chars = 0
                 upstream_error = quiz_stats["error"]
 
                 next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
@@ -3494,10 +3501,9 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     )
                     print(f"[DIAGNOSIS] next-question generation failed or duplicated (step={curr_step}, duplicate={duplicated}, emitted={emitted_chars}, error={upstream_error}), retrying with compact instruction", flush=True)
                     retry_stats: dict[str, Any] = {}
-                    async for sse_chunk in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats):
-                        yield sse_chunk
+                    async for _ in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats, emit=False):
+                        pass
                     full_quiz_text = retry_stats["full_text"]
-                    emitted_chars += retry_stats["emitted"]
                     next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
                     dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                     duplicated = bool(dup_stem and dup_stem in st.asked_stems)
@@ -3564,10 +3570,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 )
 
                 quiz_stats: dict[str, Any] = {}
-                async for sse_chunk in stream_quiz_question_sse(next_params, identity, request_id, retrieved_sources, quiz_stats):
-                    yield sse_chunk
+                async for _ in stream_quiz_question_sse(next_params, identity, request_id, retrieved_sources, quiz_stats, emit=False):
+                    pass
                 full_quiz_text = quiz_stats["full_text"]
-                emitted_chars = quiz_stats["emitted"]
+                emitted_chars = 0
                 upstream_error = quiz_stats["error"]
 
                 next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
@@ -3592,10 +3598,9 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     )
                     print(f"[DIAGNOSIS] pending next-question retry failed again (step={curr_step}, duplicate={duplicated}, error={upstream_error}), one more compact attempt", flush=True)
                     retry_stats: dict[str, Any] = {}
-                    async for sse_chunk in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats):
-                        yield sse_chunk
+                    async for _ in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats, emit=False):
+                        pass
                     full_quiz_text = retry_stats["full_text"]
-                    emitted_chars += retry_stats["emitted"]
                     next_parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
                     dup_stem = normalize_quiz_stem(str(next_parsed_meta.get("stem") or next_parsed_meta.get("question") or "")) if next_parsed_meta else ""
                     duplicated = bool(dup_stem and dup_stem in st.asked_stems)
@@ -3840,10 +3845,10 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                 yield f"event: session_state\ndata: {json.dumps({'scene_mode': 3, 'scene_title': '随堂单题精练', 'scene_role_name': '随堂单题精练'}, ensure_ascii=False)}\n\n".encode("utf-8")
 
                 quiz_stats: dict[str, Any] = {}
-                async for sse_chunk in stream_quiz_question_sse(quiz_params, identity, request_id, retrieved_sources, quiz_stats):
-                    yield sse_chunk
+                async for _ in stream_quiz_question_sse(quiz_params, identity, request_id, retrieved_sources, quiz_stats, emit=False):
+                    pass
                 full_quiz_text = quiz_stats["full_text"]
-                emitted_chars = quiz_stats["emitted"]
+                emitted_chars = 0
                 upstream_error = quiz_stats["error"]
 
                 parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
@@ -3865,10 +3870,9 @@ async def chat(request: Request) -> StreamingResponse | JSONResponse:
                     )
                     print(f"[QUIZ] single-question generation failed (emitted={emitted_chars}, error={upstream_error}), retrying with compact instruction", flush=True)
                     retry_stats: dict[str, Any] = {}
-                    async for sse_chunk in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats):
-                        yield sse_chunk
+                    async for _ in stream_quiz_question_sse(retry_params, identity, request_id, retrieved_sources, retry_stats, emit=False):
+                        pass
                     full_quiz_text = retry_stats["full_text"]
-                    emitted_chars += retry_stats["emitted"]
                     parsed_meta = extract_quiz_meta_fallback(full_quiz_text) if full_quiz_text.strip() else None
 
                 if not is_usable_quiz_meta(parsed_meta):
