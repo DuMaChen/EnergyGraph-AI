@@ -18,7 +18,6 @@
 
 - **生产环境 (HTTPS)**：[https://energygraph.icu](https://energygraph.icu)
 - **Agent 交互工作台**：[https://energygraph.icu/agent/](https://energygraph.icu/agent/)
-- **备用 IP 预览**：<http://168.144.36.82/>
 
 ---
 
@@ -79,4 +78,20 @@ bash scripts/pre_submission_audit.sh
 - **实施与验收计划**：[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)
 - **项目状态快照**：[`PROJECT_STATUS.md`](PROJECT_STATUS.md)
 
+---
 
+## 8. 项目文档索引
+
+| 文档 | 说明 |
+| :--- | :--- |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md) | 项目现状（2026-09-09）：功能矩阵、可靠性机制、待办 |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | 运维与故障排查手册：错误码对照、测试与发布流程、常用操作 |
+| [docs/MAINTENANCE_2026-09.md](docs/MAINTENANCE_2026-09.md) | 2026-09 可靠性专项维护全记录（8 处保底伪造清理、成绩回写修复、验证数据、遗留事项） |
+| [DEVELOPMENT_ARCHIVE.md](DEVELOPMENT_ARCHIVE.md) | 全生命周期开发留档（阶段一至阶段八） |
+| [archive/PROJECT_STATUS_20260822.md](archive/PROJECT_STATUS_20260822.md) | 旧状态快照（2026-08-22，仅存档） |
+| [USER_MANUAL.md](USER_MANUAL.md) | 使用手册总索引与管理员后台维护指南 |
+| [TEACHER_MANUAL.md](TEACHER_MANUAL.md) | 教师使用指南 |
+| [STUDENT_MANUAL.md](STUDENT_MANUAL.md) | 学生使用指南 |
+| [AGENTS.md](AGENTS.md) | 开发协作约定 |
+
+> 运行纪律：任何改动推送生产前，须完成单元测试 + 师生双角色多轮实机验证（详见 docs/OPERATIONS.md 第 5 节）。
