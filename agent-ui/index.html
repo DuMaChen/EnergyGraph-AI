@@ -3570,8 +3570,6 @@
 
               <!-- View Controls (Always Visible) -->
               <button class="btn-outline-green" style="padding: 4px 8px; font-size: 12px; background: #fff;" onclick="centerMindmapView()" title="居中自适应视野">居中视野</button>
-              <button class="btn-outline-green" style="padding: 4px 8px; font-size: 12px; background: #fff;" onclick="zoomMindmapIn()" title="放大视野">+</button>
-              <button class="btn-outline-green" style="padding: 4px 8px; font-size: 12px; background: #fff;" onclick="zoomMindmapOut()" title="缩小视野">-</button>
             </div>
 
             <!-- Right: Search and Chapter Quick Jump -->
@@ -3595,6 +3593,11 @@
             
             <!-- Mind Elixir Canvas Container -->
             <div id="mindmapCanvasWrapper" style="position: relative; height: 680px; background: #fcfdfd; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+              <!-- Floating zoom controls (bottom center) -->
+              <div id="mindmapZoomFab" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 8px; background: rgba(255,255,255,0.96); border: 1px solid var(--border-color); border-radius: 999px; padding: 8px 6px; box-shadow: 0 4px 16px rgba(15,23,42,0.14);" title="鼠标滚轮也可缩放图谱">
+                <button type="button" onclick="zoomMindmapIn()" title="放大视野" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); background: #fff; color: #1f2937; font-size: 17px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
+                <button type="button" onclick="zoomMindmapOut()" title="缩小视野" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); background: #fff; color: #1f2937; font-size: 17px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;">−</button>
+              </div>
               <!-- Mind Elixir mount element -->
               <div id="mindElixirMap" style="width: 100%; height: 100%; background: #ffffff;"></div>
 
@@ -11231,7 +11234,24 @@ D. [选项D具体描述]
         toolBar: false,
         keypress: true,
         locale: "cn",
-        mouseSelectionButton: 2
+        mouseSelectionButton: 2,
+        // Plain mouse wheel zooms the map (Shift+wheel keeps horizontal pan).
+        handleWheel: (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          const me = window.mindElixirInstance;
+          if (!me || typeof me.scale !== "function") return;
+          if (ev.shiftKey && !ev.ctrlKey && !ev.metaKey) {
+            me.move(-ev.deltaY, 0);
+            return;
+          }
+          const factor = ev.deltaY < 0 ? 1.12 : 0.89;
+          const current = me.scaleVal || 1;
+          const next = Math.min(2.2, Math.max(0.4, current * factor));
+          if (Math.abs(next - current) < 0.001) return;
+          me.scale(next);
+          if (typeof me.renderArrow === "function") me.renderArrow();
+        }
       };
 
       const me = new MindElixirClass(options);
