@@ -6,6 +6,7 @@ Captures full token streams, citations, latency, state transitions, and evaluate
 """
 import asyncio
 import json
+import os
 import time
 import httpx
 
@@ -14,7 +15,24 @@ LOGIN_URL = f"{BASE_URL}/login/index.php"
 CHAT_URL = f"{BASE_URL}/api/course-agent/chat"
 SESSION_URL = f"{BASE_URL}/local/course_agent/session.php"
 
-async def login_and_get_session(username="student", password="Moodle2026!"):
+def _student_password() -> str:
+    pw = os.getenv("MOODLE_STUDENT_PASSWORD", "")
+    if not pw:
+        env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "deploy", ".env")
+        try:
+            with open(env_file, encoding="utf-8") as fh:
+                for line in fh:
+                    if line.startswith("MOODLE_STUDENT_PASSWORD="):
+                        pw = line.split("=", 1)[1].strip().strip('"')
+                        break
+        except OSError:
+            pass
+    if not pw:
+        raise SystemExit("MOODLE_STUDENT_PASSWORD 未设置（环境变量或 deploy/.env）；安全整改 2026-09 移除内嵌密码")
+    return pw
+
+async def login_and_get_session(username="student", password=None):
+    password = password or _student_password()
     async with httpx.AsyncClient(verify=False, timeout=30.0, follow_redirects=True) as client:
         # 1. Fetch login page to get logintoken
         resp = await client.get(LOGIN_URL)

@@ -69,3 +69,6 @@ acceptance/test-reports/manual/raw/
 
 # Derived courseware page images (regenerable from course-data, served by nginx)
 agent-ui/slides/
+
+# Acceptance evidence stays local-only (duplicated by archive/, 31MB screenshots)
+/acceptance/

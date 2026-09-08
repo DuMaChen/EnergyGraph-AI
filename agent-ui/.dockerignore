@@ -1,0 +1,5 @@
+# Keep backend source and macOS resource forks out of the static image
+main.py
+._*
+Dockerfile
+git*\.tar.gz

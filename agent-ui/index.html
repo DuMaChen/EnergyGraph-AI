@@ -4451,30 +4451,30 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                 <div>
                   <label style="font-size: 12px; color: #374151; font-weight: 500; display: block; margin-bottom: 4px;">课程答疑工作流 ID (Flow ID)</label>
-                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkFlowIdInput" value="7494978072491315200">
+                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkFlowIdInput" value="">
                 </div>
                 <div>
                   <label style="font-size: 12px; color: #374151; font-weight: 500; display: block; margin-bottom: 4px;">学情诊断专属工作流 ID (Diagnosis Flow ID)</label>
-                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkDiagFlowIdInput" value="7494978072491315200">
+                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkDiagFlowIdInput" value="">
                 </div>
               </div>
               
               <div style="display: grid; grid-template-columns: 1fr 1.5fr 1.5fr; gap: 14px; margin-bottom: 14px;">
                 <div>
                   <label style="font-size: 12px; color: #374151; font-weight: 500; display: block; margin-bottom: 4px;">应用标识 (APPID)</label>
-                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkAppIdInput" value="1a31e771">
+                  <input type="text" class="sort-select" style="width: 100%; font-family: monospace; font-size: 12.5px;" id="sparkAppIdInput" value="">
                 </div>
                 <div>
                   <label style="font-size: 12px; color: #374151; font-weight: 500; display: block; margin-bottom: 4px;">接口密钥 (API Key)</label>
                   <div style="display: flex; gap: 6px;">
-                    <input type="password" class="sort-select" style="flex: 1; font-family: monospace; font-size: 12.5px;" id="sparkApiKeyInput" value="***REDACTED-XFYUN-KEY***">
+                    <input type="password" class="sort-select" style="flex: 1; font-family: monospace; font-size: 12.5px;" id="sparkApiKeyInput" value="">
                     <button type="button" class="btn-outline-green" style="padding: 4px 8px; font-size: 12px; background: #fff;" onclick="togglePasswordMask('sparkApiKeyInput')"></button>
                   </div>
                 </div>
                 <div>
                   <label style="font-size: 12px; color: #374151; font-weight: 500; display: block; margin-bottom: 4px;">安全密钥 (API Secret)</label>
                   <div style="display: flex; gap: 6px;">
-                    <input type="password" class="sort-select" style="flex: 1; font-family: monospace; font-size: 12.5px;" id="sparkApiSecretInput" value="***REDACTED-XFYUN-SECRET***">
+                    <input type="password" class="sort-select" style="flex: 1; font-family: monospace; font-size: 12.5px;" id="sparkApiSecretInput" value="">
                     <button type="button" class="btn-outline-green" style="padding: 4px 8px; font-size: 12px; background: #fff;" onclick="togglePasswordMask('sparkApiSecretInput')"></button>
                   </div>
                 </div>
@@ -10264,66 +10264,66 @@ D. [选项D具体描述]
         name: " 讯飞星辰智能体工作流 (推荐教学答疑与学情诊断)",
         versionText: "星辰工作流引擎 / Spark 4.0",
         endpoint: "https://xingchen-api.xf-yun.com/workflow/v1/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         desc: "融合知识库图谱与学情专属工作流，支持多轮交互推演与专属学情错题归因"
       },
       "spark-4.0-ultra": {
         name: " Spark4.0 Ultra (旗舰深度推理)",
         versionText: "v4.0 Ultra / 128k 上下文",
         endpoint: "https://spark-api-open.xf-yun.com/v4.0/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         desc: "星火 4.0 顶尖旗舰模型，具备超强长文本理解与多模态教学认知能力"
       },
       "spark-max": {
         name: " Spark Max (通用认知与出题)",
         versionText: "v3.5 / 32k 上下文",
         endpoint: "https://spark-api-open.xf-yun.com/v1/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         desc: "星火 Max 核心模型，适合复杂概念解答、严密逻辑推导与高质量自动出题"
       },
       "spark-pro": {
         name: " Spark Pro (专业敏捷版)",
         versionText: "v3.0 / 16k 上下文",
         endpoint: "https://spark-api-open.xf-yun.com/v3.0/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         desc: "星火 Pro 专业版，兼顾高响应速度与出色的知识点总结能力"
       },
       "spark-lite": {
         name: " Spark Lite (轻量免费版)",
         versionText: "v1.1 / 8k 上下文",
         endpoint: "https://spark-api-open.xf-yun.com/v1.1/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         desc: "星火 Lite 轻量级模型，响应极快，适合日常通识概念快问快答"
       },
       "custom": {
         name: " 自定义星火 API / 工作流接入点",
         versionText: "自定义协议 / 专属反代",
         endpoint: "",
-        appId: "1a31e771",
+        appId: "",
         apiKey: "",
         apiSecret: "",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        flowId: "",
+        diagFlowId: "",
         desc: "允许输入高校私有部署或自定义代理网关地址"
       }
     };
@@ -10331,11 +10331,11 @@ D. [选项D具体描述]
     let currentSparkConfig = {
       model: "xingchen-workflow",
       endpoint: "https://xingchen-api.xf-yun.com/workflow/v1/chat/completions",
-      appId: "1a31e771",
-      apiKey: "***REDACTED-XFYUN-KEY***",
-      apiSecret: "***REDACTED-XFYUN-SECRET***",
-      flowId: "7494978072491315200",
-      diagFlowId: "7494978072491315200",
+      appId: "",
+      apiKey: "",
+      apiSecret: "",
+      flowId: "",
+      diagFlowId: "",
       temperature: 0.3,
       maxTokens: 4096,
       topK: 4
@@ -10374,8 +10374,8 @@ D. [选项D具体描述]
       if (appInput) appInput.value = currentSparkConfig.appId;
       if (keyInput) keyInput.value = currentSparkConfig.apiKey;
       if (secretInput) secretInput.value = currentSparkConfig.apiSecret;
-      if (flowInput) flowInput.value = currentSparkConfig.flowId || "7494978072491315200";
-      if (diagFlowInput) diagFlowInput.value = currentSparkConfig.diagFlowId || "7494978072491315200";
+      if (flowInput) flowInput.value = currentSparkConfig.flowId || "";
+      if (diagFlowInput) diagFlowInput.value = currentSparkConfig.diagFlowId || "";
       if (tempRange) tempRange.value = currentSparkConfig.temperature;
       if (tempVal) tempVal.textContent = currentSparkConfig.temperature;
       if (maxTok) maxTok.value = currentSparkConfig.maxTokens;
@@ -10412,8 +10412,8 @@ D. [选项D具体描述]
       const appId = document.getElementById("sparkAppIdInput").value.trim();
       const apiKey = document.getElementById("sparkApiKeyInput").value.trim();
       const apiSecret = document.getElementById("sparkApiSecretInput").value.trim();
-      const flowId = document.getElementById("sparkFlowIdInput") ? document.getElementById("sparkFlowIdInput").value.trim() : "7494978072491315200";
-      const diagFlowId = document.getElementById("sparkDiagFlowIdInput") ? document.getElementById("sparkDiagFlowIdInput").value.trim() : "7494978072491315200";
+      const flowId = document.getElementById("sparkFlowIdInput") ? document.getElementById("sparkFlowIdInput").value.trim() : "";
+      const diagFlowId = document.getElementById("sparkDiagFlowIdInput") ? document.getElementById("sparkDiagFlowIdInput").value.trim() : "";
       const temperature = parseFloat(document.getElementById("sparkTempRange").value) || 0.3;
       const maxTokens = parseInt(document.getElementById("sparkMaxTokensSelect").value, 10) || 4096;
       const topK = parseInt(document.getElementById("sparkTopKSelect").value, 10) || 4;
@@ -10455,11 +10455,11 @@ D. [选项D具体描述]
       currentSparkConfig = {
         model: "xingchen-workflow",
         endpoint: "https://xingchen-api.xf-yun.com/workflow/v1/chat/completions",
-        appId: "1a31e771",
-        apiKey: "***REDACTED-XFYUN-KEY***",
-        apiSecret: "***REDACTED-XFYUN-SECRET***",
-        flowId: "7494978072491315200",
-        diagFlowId: "7494978072491315200",
+        appId: "",
+        apiKey: "",
+        apiSecret: "",
+        flowId: "",
+        diagFlowId: "",
         temperature: 0.3,
         maxTokens: 4096,
         topK: 4

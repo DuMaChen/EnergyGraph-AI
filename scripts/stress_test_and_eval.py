@@ -7,7 +7,9 @@ import time
 import httpx
 
 BASE_URL = os.getenv("TEST_BASE_URL", "http://127.0.0.1:8081")
-BRIDGE_TOKEN = os.getenv("AGENT_BRIDGE_TOKEN", "***REDACTED-BRIDGE-TOKEN***")
+BRIDGE_TOKEN = os.getenv("AGENT_BRIDGE_TOKEN", "")
+if not BRIDGE_TOKEN:
+    sys.exit("AGENT_BRIDGE_TOKEN 未设置；拒绝使用内嵌默认值（安全整改 2026-09）")
 HEADERS = {
     "Content-Type": "application/json",
     "x-dev-role": "student",
