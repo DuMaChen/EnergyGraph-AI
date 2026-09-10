@@ -3,11 +3,11 @@
 > 状态快照：2026-09-09（Asia/Shanghai）
 > 仓库：[DuMaChen/EnergyGraph-AI](https://github.com/DuMaChen/EnergyGraph-AI)（服务器本地 git 仓库已初始化，main 分支）
 > 历史档案：[DEVELOPMENT_ARCHIVE.md](./DEVELOPMENT_ARCHIVE.md) · 旧状态快照（2026-08-22）：[archive/PROJECT_STATUS_20260822.md](./archive/PROJECT_STATUS_20260822.md)
-> 本轮维护详情：[docs/MAINTENANCE_2026-09.md](./docs/MAINTENANCE_2026-09.md) · 运维手册：[docs/OPERATIONS.md](./docs/OPERATIONS.md)
+> 本轮维护详情：[docs/MAINTENANCE_2026-09.md](./docs/MAINTENANCE_2026-09.md) · 安全整改：[docs/SECURITY_MAINTENANCE_2026-09.md](./docs/SECURITY_MAINTENANCE_2026-09.md) · 运维手册：[docs/OPERATIONS.md](./docs/OPERATIONS.md)
 
 ## 1. 一句话结论
 
-平台已上线生产（HTTPS：`https://energygraph.icu/agent/`），三角色教学业务闭环可用并经过多轮实机验证；2026-09-07 至 09-09 完成对话 Agent 可靠性专项维护——**清除全部 8 处保底伪造逻辑、修复成绩册回写三处断点、建立工作流劫持识别-复位-重试与出题缓冲验证机制**，并按"师生各 7 轮 × 4 类功能"完成推送前后压测。
+平台已上线生产（HTTPS：`https://energygraph.icu/agent/`），三角色教学业务闭环可用并经过多轮实机验证；2026-09-07 至 09-09 完成对话 Agent 可靠性专项维护——**清除全部 8 处保底伪造逻辑、修复成绩册回写三处断点、建立工作流劫持识别-复位-重试与出题缓冲验证机制**，并按"师生各 7 轮 × 4 类功能"完成推送前后压测。2026-09-09 完成安全专项整改——**前端讯飞凭证、Bridge Token、admin 口令全部清除并轮换，后端源码公网下载漏洞关闭，git 历史密钥清零**（线上零停机，全量复测通过）。
 
 ## 2. 部署与运行
 
@@ -17,7 +17,7 @@
 | 服务器 | 阿里云，Docker Compose：Caddy + Moodle 4.5 + Agent UI + Agent Adapter + MariaDB |
 | 容器状态 | 全部 running / healthy |
 | 部署目录 | `/opt/jbgs-course-agent`（git 仓库，main） |
-| 账号 | teacher / student / admin（详见 USER_MANUAL.md） |
+| 账号 | teacher / student 公开教学口令见 USER_MANUAL.md；admin 口令专人保管（2026-09-09 已轮换，不入公开文档） |
 
 ## 3. 功能现状矩阵
 
@@ -56,13 +56,16 @@
 
 ## 7. 待办
 
-1. **（控制台）** 知识问答模型 `input` 改回 `AGENT_USER_INPUT`——普通问答恢复的前提；
-2. **（控制台）** 变量存储器_6 变量作用域、`ansewr9` 拼写、知识库_6 文件数核查；
-3. **（平台）** "通知与讨论"板块目前为前端写死演示数据，需补通知 CRUD（后端表+接口+前端接线）；
-4. **（平台）** 出题请求可考虑携带对话历史，进一步提升跨题防重命中率。
+1. **（安全·人工）** GitHub force push 新历史 + 开启 Secret scanning/Push protection + 向 GitHub Support 申请旧缓存清除（服务器无推送凭证，详见安全整改记录第 6 节）；
+2. **（安全·人工）** 讯飞控制台重置应用 `1a31e771` 的 APIKey/APISecret 并更新 `deploy/.env`（旧 key 在重置前仍可能被冒用消耗配额）；
+3. **（测试债）** 适配器 3 个过期单测修复：`test_main.py` 移除对已删函数 `build_teacher_fallback_answer` 的导入；`test_e2e_live_scenarios.py` 两处 SSE 文案断言随诚实兜底改造更新；
+4. **（控制台）** 知识问答模型 `input` 改回 `AGENT_USER_INPUT`——普通问答恢复的前提；
+5. **（控制台）** 变量存储器_6 变量作用域、`ansewr9` 拼写、知识库_6 文件数核查；
+6. **（平台）** "通知与讨论"板块目前为前端写死演示数据，需补通知 CRUD（后端表+接口+前端接线）；
+7. **（平台）** 出题请求可考虑携带对话历史，进一步提升跨题防重命中率。
 
 ## 8. 不变承诺
 
 - 零表情符号工程红线；
-- 讯飞密钥仅存 `deploy/.env`，不入前端/日志/仓库；
+- 讯飞密钥仅存 `deploy/.env`，不入前端/日志/仓库（2026-09-09 安全整改后实测成立：前端/历史/镜像/线上页面零密钥，git 历史已全量改写清零）；
 - 每日 cron 备份与恢复演练机制照旧（最近演练点见历史档案）。

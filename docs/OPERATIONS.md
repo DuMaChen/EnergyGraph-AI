@@ -1,7 +1,7 @@
 # 运维与故障排查手册（EnergyGraph-AI）
 
 > 面向：平台运维 / 后续开发接手者
-> 配套文档：[MAINTENANCE_2026-09.md](./MAINTENANCE_2026-09.md)（本轮维护全记录）、[PROJECT_STATUS.md](../PROJECT_STATUS.md)（项目现状）
+> 配套文档：[MAINTENANCE_2026-09.md](./MAINTENANCE_2026-09.md)（可靠性维护记录）、[SECURITY_MAINTENANCE_2026-09.md](./SECURITY_MAINTENANCE_2026-09.md)（安全整改记录）、[PROJECT_STATUS.md](../PROJECT_STATUS.md)（项目现状）
 
 ---
 
@@ -93,3 +93,18 @@ docker exec deploy-db-1 mariadb -uroot -p"$PW" -N -e "<SQL>" 2>/dev/null
 - `agent-adapter`、`agent-ui` 代码打进镜像，**无卷挂载**：改代码必须重建容器；容器重建后 `/app/tests` 丢失，跑测试前需重新 `docker cp`；
 - 适配器与工作流之间的"退出情景演绎"探针会进入工作流决策节点的对话记忆（rounds=6），属已知特性，靠 farewell/echo 识别兜底；
 - 讯飞控制台侧待修项见 [MAINTENANCE_2026-09.md](./MAINTENANCE_2026-09.md) 第 7 节，其中"知识问答模型 input 改回 AGENT_USER_INPUT"是普通问答恢复的前提。
+
+## 8. 密钥管理与轮换 SOP（2026-09 安全整改后确立）
+
+**密钥只允许存在于**：`deploy/.env`（0600，不入库）、`/root/new-secrets-*.txt`（0600，轮换交接用）。严禁出现在：前端源码、git 历史（含提交信息）、镜像内容、日志、手册。红线由来与整改全记录见 [SECURITY_MAINTENANCE_2026-09.md](./SECURITY_MAINTENANCE_2026-09.md)。
+
+| 密钥 | 轮换方式 | 生效动作 |
+| :--- | :--- | :--- |
+| `AGENT_BRIDGE_TOKEN` | `openssl rand -hex 32` 更新 `.env` | **必须同时** `docker compose up -d agent-adapter moodle`（grade-sync.php 侧校验同一 token，只重建 adapter 会导致成绩回写 401） |
+| admin 口令 | `docker exec -it deploy-moodle-1 php admin/cli/reset_password.php`（**改 `.env` 无效**，该值仅安装期生效；改后同步更新 `.env` 供登录冒烟脚本读取） | 无需重启 |
+| 讯飞 APIKey/Secret | 讯飞开放平台控制台重置，更新 `.env` 的 `XINGCHEN_API_KEY/SECRET` | `docker compose up -d agent-adapter`，跑 `scripts/xingchen_smoke.sh` 确认 5/5 |
+
+- 轮换前必做：`mariadb-dump` 全库备份 + `tar` 仓库备份 + 旧镜像打 `rollback-*` 标签；
+- 验证套路：旧值调 `/api/*` 应 401、新值 200；admin 旧口令登录被拒；`xingchen_smoke.sh` 通过；
+- 任何人不得把真实密钥贴进终端输出/工单/文档——展示时截断（如 `c6f5…`）；
+- 静态镜像内容自检：`docker run --rm <agent-ui镜像> sh -c 'grep -c <key前缀> /usr/share/nginx/html/index.html'` 应为 0，且 `/usr/share/nginx/html/main.py` 不存在。
