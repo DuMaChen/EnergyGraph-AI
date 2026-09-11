@@ -5342,6 +5342,19 @@
       ]
     };
 
+    // 演示数据自洽：按逐题作答记录重算每位种子学生的答卷总分，
+    // 使批阅列表分数与"查看答卷"逐题得分完全一致（2026-09-10 P3）
+    COURSE_DATA.students.forEach(stu => {
+      if (!stu.taskId) return;
+      const sheet = ensureStudentSheet(stu);
+      if (sheet) {
+        const paperTotal = sheet.questions.reduce((s2, q) => s2 + (parseInt(q.score, 10) || 0), 0);
+        if (paperTotal > 0) {
+          stu.score = Math.round((sheet.questions.reduce((s2, q) => s2 + (parseInt(q.earnedScore, 10) || 0), 0) / paperTotal) * 100);
+        }
+      }
+    });
+
     // User session state
     let currentUser = {
       username: "",
@@ -6742,7 +6755,7 @@
           let cwName = "";
           let cwPage = 0;
           if (cwStr) {
-            let nameM = cwStr.match(/([^\s\[\]\(\)]+\.pdf)/);
+            let nameM = cwStr.match(/((?:\d+(?:\.\d+)?\s+)?[^\s\[\]\(\)]+\.pdf)/);
             if (nameM) cwName = nameM[1].trim();
             let pageM = cwStr.match(/(?:第\s*(\d+)\s*页|[Pp]\s*(\d+))/);
             if (pageM) cwPage = parseInt(pageM[1] || pageM[2], 10);
