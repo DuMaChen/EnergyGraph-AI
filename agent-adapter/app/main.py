@@ -1634,7 +1634,9 @@ async def get_admin_prompt_config(request: Request) -> JSONResponse:
     if error:
         return error
     try:
-        require_role(identity, {"admin"})
+        # 2026-09-10 P7: teachers may VIEW the live prompt configuration
+        # (read-only); writes stay admin-only.
+        require_role(identity, {"teacher", "admin"})
     except PermissionError:
         return JSONResponse(error_payload(request_id, "forbidden", "只有管理员可以查看系统提示词配置"), status_code=403)
     return json_response(request_id, load_prompt_config())
