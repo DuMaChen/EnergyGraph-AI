@@ -2053,6 +2053,26 @@
       font-size: 12.5px;
       background: #ffffff;
     }
+    /* P6a: 章节级节点（根节点直接子级）加深加粗，突出知识层级 */
+    .map-container me-main>me-wrapper>me-parent>me-tpc {
+      color: #0f766e !important;
+      font-weight: 600;
+      font-size: 15.5px;
+      background: #ecfdf5;
+      border-radius: 4px;
+    }
+    .draft-opt-row input[type="radio"].draft-opt-radio {
+      flex: 0 0 auto;
+      width: 14px;
+      height: 14px;
+      padding: 0;
+      margin: 0 2px 0 6px;
+      accent-color: #059669;
+      cursor: pointer;
+      border: 2px solid #9ca3af;
+      border-radius: 50%;
+      background: #ffffff;
+    }
     .draft-meta-row {
       display: grid;
       grid-template-columns: 180px 1fr;
@@ -3610,7 +3630,7 @@
                   <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 16px; height: 2px; border-top: 2px dashed #ea580c; display: inline-block;"></span> 先修依赖关联 (虚线)</span>
                 </div>
                 <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
-                  单击考点查看精讲与课件 · 双击节点直达课件 · 拖动画布缩放 · 点击【修改图谱】可自由编辑
+                  单击考点查看精讲与课件 · 双击节点直达课件 · 拖动画布缩放 · 点击右上角【修改图谱】按钮即可增删考点与连线，保存后同步个人云端学习空间
                 </div>
               </div>
             </div>
@@ -4021,7 +4041,7 @@
                       <th>学号</th>
                       <th>学生姓名</th>
                       <th>课件学习进度</th>
-                      <th>平时作业均分<div style="font-size: 11px; font-weight: normal; color: #6b7280;">权重 40%</div></th>
+                      <th title="取该生全部已批阅平时作业成绩的平均分">平时作业均分<div style="font-size: 11px; font-weight: normal; color: #6b7280;">权重 40% · 已批阅作业平均</div></th>
                       <th>阶段测验成绩<div style="font-size: 11px; font-weight: normal; color: #6b7280;">权重 60%</div></th>
                       <th>课程综合总评<div style="font-size: 11px; font-weight: normal; color: #6b7280;">平时40% + 测验60%</div></th>
                       <th>学情预警</th>
@@ -4177,7 +4197,7 @@
             <button class="teacher-subtab" id="tabBtn-papers" onclick="switchTeacherSubTab('papers')">
               <div class="subtab-title-row">
                 <span class="subtab-title">课程试卷库</span>
-                <span class="subtab-pill" id="subtabPaperCount">4</span>
+                <span class="subtab-pill" id="subtabPaperCount">0</span>
               </div>
               <span class="subtab-desc">已存试卷组 · 整卷查阅 · 二次编辑 · 一键下发</span>
             </button>
@@ -4240,12 +4260,12 @@
               <div>
                 <label style="font-size: 12px; color: #4b5563; display: block; margin-bottom: 4px; font-weight: 500;">所属章节考点</label>
                 <select class="sort-select" style="width: 100%;" id="teacherGenChapter">
-                  <option value="ch1">第1章 概述与储能技术发展</option>
-                  <option value="ch2">第2章 电力系统运行特性与储能技术应用</option>
-                  <option value="ch3" selected>第3章 储能变流器拓扑与并网控制</option>
-                  <option value="ch4">第4章 储能容量规划与 LCOS 经济性</option>
-                  <option value="ch5">第5章 储能系统接入与一次调频控制</option>
-                  <option value="ch6">第6章 电力储能系统性能检测与综合评估</option>
+                  <option value="第1章 概述">第1章 概述</option>
+                  <option value="第2章 电力系统与储能技术的应用">第2章 电力系统与储能技术的应用</option>
+                  <option value="第3章 电力储能系统的组成及工作原理" selected>第3章 电力储能系统的组成及工作原理</option>
+                  <option value="第4章 电力储能系统的规划配置">第4章 电力储能系统的规划配置</option>
+                  <option value="第5章 电力储能系统的接入与运行维护">第5章 电力储能系统的接入与运行维护</option>
+                  <option value="第6章 电力储能系统的性能检测与综合评估">第6章 电力储能系统的性能检测与综合评估</option>
                 </select>
               </div>
               <div>
@@ -4254,7 +4274,6 @@
                   <option value="进阶应用">进阶应用 (综合计算与分析)</option>
                   <option value="综合分析">综合分析 (案例与策略推导)</option>
                   <option value="基础概念">基础概念 (核心定义辨析)</option>
-                  <option value="工程实战">工程实战 (故障防护与参数整定)</option>
                 </select>
               </div>
               <div>
@@ -4289,7 +4308,7 @@
               <div class="draft-summary-grid">
                 <div>
                   <label style="font-size: 11.5px; color: #4b5563; display: block; margin-bottom: 3px;">作业/测验标题</label>
-                  <input type="text" class="sort-select" style="width: 100%;" id="teacherTaskTitleInput" value="第3章 储能变流器并网与控制阶段测验">
+                  <input type="text" class="sort-select" style="width: 100%;" id="teacherTaskTitleInput" value="第3章 电力储能系统的组成及工作原理 阶段测验">
                 </div>
                 <div>
                   <label style="font-size: 11.5px; color: #4b5563; display: block; margin-bottom: 3px;">作业类型</label>
@@ -4336,7 +4355,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <div class="panel-title" style="margin-bottom: 0;">3. 课程试卷库与已保存试卷组（教师端专属）</div>
               <span style="font-size: 12px; color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 3px 10px; border-radius: 12px; font-weight: 500;">
-                试卷库已收录 <strong id="teacherPaperLibCount">3</strong> 套试卷组
+                试卷库已收录 <strong id="teacherPaperLibCount">0</strong> 套试卷组
               </span>
             </div>
             <div class="panel-sub">记录教师自主命制与大模型生成的试卷组；支持整卷完整查阅、载入出题台二次编辑、一键发布至全班任务中心与删除管理。</div>
@@ -4526,6 +4545,10 @@
                 支持管理员在线查看和修改助教的核心回答规范、质量要求，以及学生答疑、教师备课、自动出题、作业批改等场景的具体工作要求，保存后即时生效。
               </div>
 
+              <div id="adminTeacherReadOnlyNotice" style="display: none; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; color: #92400e; font-size: 12.5px;">
+                教师视角为只读：可查看当前生效的大模型回答规则与服务配置；修改与重置需使用管理员账号。
+              </div>
+
               <!-- Tab selector for prompt sections -->
               <div style="display: flex; gap: 8px; border-bottom: 1px solid #f3e8ff; padding-bottom: 8px; margin-bottom: 12px;" id="promptTabsWrap">
                 <button type="button" class="btn-solid-green" style="background: #7e22ce; border-color: #6b21a8; font-size: 12px; padding: 4px 10px;" id="tabPromptCore" onclick="switchPromptTab('core')">核心回答质量要求</button>
@@ -4563,16 +4586,16 @@
 
               <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 11.5px; color: #6b7280;"> 系统在回答问题时会自动结合当前设定的质量要求、场景规则、相关课件内容与历史对话。</span>
-                <button type="button" class="btn-solid-green" style="background: #7e22ce; border-color: #6b21a8; font-size: 12.5px;" onclick="saveAdminPromptConfig()"> 保存规则配置</button>
+                <button type="button" class="btn-solid-green" style="background: #7e22ce; border-color: #6b21a8; font-size: 12.5px;" id="btnSavePromptRules" onclick="saveAdminPromptConfig()"> 保存规则配置</button>
               </div>
             </div>
             
             <!-- Actions Toolbar -->
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; gap: 10px;">
-                <button class="btn-solid-green" style="background: #7e22ce; border-color: #6b21a8;" onclick="handleSaveSparkConfig()"> 保存服务配置</button>
+                <button class="btn-solid-green" style="background: #7e22ce; border-color: #6b21a8;" id="btnSaveSparkSvc" onclick="handleSaveSparkConfig()"> 保存服务配置</button>
                 <button class="btn-outline-green" style="color: #7e22ce; border-color: #a855f7; background: #fff;" onclick="handleTestSparkConnectivity()"> 连通性检查</button>
-                <button class="btn-outline-green" style="color: #6b7280; border-color: #d1d5db; background: #fff;" onclick="handleResetSparkConfig()"> 恢复默认配置</button>
+                <button class="btn-outline-green" style="color: #6b7280; border-color: #d1d5db; background: #fff;" id="btnResetSparkSvc" onclick="handleResetSparkConfig()"> 恢复默认配置</button>
               </div>
               
               <div style="display: flex; gap: 10px;">
@@ -5036,6 +5059,168 @@
               source: { name: "4.2 电化学储能系统的规划配置.pdf", page: 16 }
             }
           ]
+        },
+        {
+          id: 6,
+          title: "第6章 电力储能系统性能检测与综合评估测验",
+          tag: "阶段测验",
+          type: "1 个学习单元",
+          deadline: "2026-09-20 23:59",
+          status: "pending",
+          statusText: "待完成",
+          score: null,
+          questions: [
+            {
+              id: 1,
+              type: "single",
+              typeText: "单选题",
+              score: 40,
+              stem: "储能系统电池容量的标准测试方法中，额定容量通常以下列哪种条件下的放电量定义？",
+              options: [
+                { key: "A", text: "额定功率下放电至截止电压所放出的电量" },
+                { key: "B", text: "任意倍率放电 10 分钟的电量" },
+                { key: "C", text: "充电过程吸收的全部电量" },
+                { key: "D", text: "高温环境下的最大放电电量" }
+              ],
+              correct: "A",
+              explanation: "额定容量指在规定温度与额定放电倍率下放电至截止电压所提供的电量，是性能检测的基准指标。",
+              source: { name: "6.1 电力储能系统的性能检测.pdf", page: 6 }
+            },
+            {
+              id: 2,
+              type: "multi",
+              typeText: "多选题",
+              score: 30,
+              stem: "储能系统并网性能检测通常包含下列哪些项目？",
+              options: [
+                { key: "A", text: "充放电响应时间测试" },
+                { key: "B", text: "功率控制精度测试" },
+                { key: "C", text: "低电压穿越能力测试" },
+                { key: "D", text: "电池电芯拆解重量测量" }
+              ],
+              correct: "ABC",
+              explanation: "并网检测关注响应时间、控制精度与低电压穿越等并网特性；电芯拆解重量测量不属于并网性能检测项目。",
+              source: { name: "6.1 电力储能系统的性能检测.pdf", page: 9 }
+            },
+            {
+              id: 3,
+              type: "single",
+              typeText: "单选题",
+              score: 30,
+              stem: "储能电站综合评估中，反映全寿命周期经济性的核心指标是？",
+              options: [
+                { key: "A", text: "LCOS 平准化度电存储成本" },
+                { key: "B", text: "单次充放电效率" },
+                { key: "C", text: "电芯重量能量密度" },
+                { key: "D", text: "机柜占地面积" }
+              ],
+              correct: "A",
+              explanation: "LCOS 覆盖投资、运维、损耗与残值的全寿命周期折算，是综合评估经济性的核心指标。",
+              source: { name: "6.2 电力储能系统的综合评估.pdf", page: 3 }
+            }
+          ]
+        },
+        {
+          id: 7,
+          title: "第1章 电力储能基础概念随堂练习",
+          tag: "课后作业",
+          type: "1 个学习单元",
+          deadline: "2026-09-18 23:59",
+          status: "pending",
+          statusText: "待完成",
+          score: null,
+          questions: [
+            {
+              id: 1,
+              type: "judge",
+              typeText: "判断题",
+              score: 40,
+              stem: "抽水蓄能是目前全球装机规模最大的储能方式。",
+              options: [
+                { key: "A", text: "正确" },
+                { key: "B", text: "错误" }
+              ],
+              correct: "A",
+              explanation: "抽水蓄能占全球储能装机的绝大部分，是当前规模最大的成熟储能方式。",
+              source: { name: "1.2 电力储能技术的发展.pdf", page: 4 }
+            },
+            {
+              id: 2,
+              type: "single",
+              typeText: "单选题",
+              score: 30,
+              stem: "下列哪种储能方式属于电磁储能？",
+              options: [
+                { key: "A", text: "超导磁储能 (SMES)" },
+                { key: "B", text: "飞轮储能" },
+                { key: "C", text: "铅酸电池储能" },
+                { key: "D", text: "压缩空气储能" }
+              ],
+              correct: "A",
+              explanation: "超导磁储能利用超导线圈储存电磁能，属于电磁储能；飞轮属机械储能，电池属电化学储能。",
+              source: { name: "1.2 电力储能技术的发展.pdf", page: 7 }
+            },
+            {
+              id: 3,
+              type: "single",
+              typeText: "单选题",
+              score: 30,
+              stem: "储能技术按应用时长分类，适合电网调峰的长时间储能是？",
+              options: [
+                { key: "A", text: "抽水蓄能与压缩空气储能" },
+                { key: "B", text: "超级电容器" },
+                { key: "C", text: "飞轮储能阵列" },
+                { key: "D", text: "超导磁储能" }
+              ],
+              correct: "A",
+              explanation: "抽水蓄能与压缩空气储能容量大、时长长，适合调峰；其余三者响应快但时长短，适合调频与暂态支撑。",
+              source: { name: "1.2 电力储能技术的发展.pdf", page: 9 }
+            }
+          ]
+        },
+        {
+          id: 8,
+          title: "期中综合测评（第1~3章）",
+          tag: "综合大作业",
+          type: "2 个学习单元",
+          deadline: "2026-09-25 23:59",
+          status: "pending",
+          statusText: "待完成",
+          score: null,
+          questions: [
+            {
+              id: 1,
+              type: "single",
+              typeText: "单选题",
+              score: 50,
+              stem: "储能参与电网一次调频时，下垂控制系数增大的直接影响是？",
+              options: [
+                { key: "A", text: "单位频率偏移下储能输出功率变化量增大" },
+                { key: "B", text: "储能系统完全不响应频率变化" },
+                { key: "C", text: "系统等效惯量强制减小" },
+                { key: "D", text: "电池 SOC 必然快速回升" }
+              ],
+              correct: "A",
+              explanation: "下垂系数决定功率对频率偏移的响应斜率，系数越大同样频差下出力变化越大，同时加大 SOC 消耗。",
+              source: { name: "5.2 电力储能系统的运行控制.pdf", page: 11 }
+            },
+            {
+              id: 2,
+              type: "single",
+              typeText: "单选题",
+              score: 50,
+              stem: "构网型储能变流器在极弱电网下稳定运行的关键技术是？",
+              options: [
+                { key: "A", text: "虚拟同步机控制与自适应虚拟阻抗" },
+                { key: "B", text: "提高锁相环带宽至无限大" },
+                { key: "C", text: "切除全部滤波电容" },
+                { key: "D", text: "始终运行于电流源模式并依赖电网锁相环" }
+              ],
+              correct: "A",
+              explanation: "虚拟同步机提供惯量与阻尼，自适应虚拟阻抗抑制弱电网下的宽频振荡，是构网型稳定运行的关键组合。",
+              source: { name: "3.4 储能变流器拓扑及并网控制.pdf", page: 15 }
+            }
+          ]
         }
       ],
       notices: [
@@ -5146,13 +5331,13 @@
         }
       ],
       students: [
-        { id: "2021001", name: "张三", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-24 16:45", hwScore: 96, testScore: 100, score: 96, weakness: "无", status: "已智能批阅", progress: 100 },
-        { id: "2021002", name: "林晨", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-24 17:20", hwScore: 98, testScore: 96, score: 98, weakness: "无", status: "已智能批阅", progress: 100 },
-        { id: "2021003", name: "邹皓", task: "第3章 储能变流器与并网控制作业", submitTime: "2026-08-23 20:10", hwScore: 92, testScore: 90, score: 92, weakness: "3.4 构网型虚拟阻抗参数", status: "已智能批阅", progress: 90 },
-        { id: "2021004", name: "张宇翔", task: "第3章 储能变流器与并网控制作业", submitTime: "2026-08-23 21:30", hwScore: 88, testScore: 86, score: 88, weakness: "3.4 LCL 滤波器谐振抑制", status: "已智能批阅", progress: 85 },
-        { id: "2021005", name: "陈子轩", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-25 09:15", hwScore: 94, testScore: 92, score: 94, weakness: "无", status: "已智能批阅", progress: 92 },
-        { id: "2021006", name: "王艺霖", task: "第4章 电力储能系统规划配置综合大作业", submitTime: "2026-08-25 11:40", hwScore: 93, testScore: 91, score: 93, weakness: "无", status: "已智能批阅", progress: 90 },
-        { id: "2021007", name: "顾问", task: "第2章 电力系统运行特性与储能技术应用测验", submitTime: "2026-08-25 14:20", hwScore: 76, testScore: 74, score: 76, weakness: "2.2 频率一次调频响应死区", status: "已智能批阅", progress: 65 },
+        { id: "2021001", name: "张三", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-24 16:45", hwScore: 96, testScore: 100, score: 96, weakness: "无", status: "已智能批阅", progress: 100, taskId: 1, homeworkScores: [{ title: "第5章 电力储能系统接入与电网调频调峰作业", score: 96 }, { title: "第3章 储能变流器与并网控制作业", score: 96 }]},
+        { id: "2021002", name: "林晨", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-24 17:20", hwScore: 98, testScore: 96, score: 98, weakness: "无", status: "已智能批阅", progress: 100, taskId: 1, homeworkScores: [{ title: "第5章 电力储能系统接入与电网调频调峰作业", score: 98 }, { title: "第1章 电力储能基础概念随堂练习", score: 98 }]},
+        { id: "2021003", name: "邹皓", task: "第3章 储能变流器与并网控制作业", submitTime: "2026-08-23 20:10", hwScore: 92, testScore: 90, score: 92, weakness: "3.4 构网型虚拟阻抗参数", status: "已智能批阅", progress: 90, taskId: 2, homeworkScores: [{ title: "第3章 储能变流器与并网控制作业", score: 92 }, { title: "第4章 电力储能系统规划配置综合大作业", score: 92 }]},
+        { id: "2021004", name: "张宇翔", task: "第3章 储能变流器与并网控制作业", submitTime: "2026-08-23 21:30", hwScore: 88, testScore: 86, score: 88, weakness: "3.4 LCL 滤波器谐振抑制", status: "已智能批阅", progress: 85, taskId: 2, homeworkScores: [{ title: "第3章 储能变流器与并网控制作业", score: 88 }, { title: "第1章 电力储能基础概念随堂练习", score: 88 }]},
+        { id: "2021005", name: "陈子轩", task: "第5章 电力储能系统接入与电网调频调峰作业", submitTime: "2026-08-25 09:15", hwScore: 94, testScore: 92, score: 94, weakness: "无", status: "已智能批阅", progress: 92, taskId: 1, homeworkScores: [{ title: "第5章 电力储能系统接入与电网调频调峰作业", score: 94 }, { title: "第2章 电力系统运行特性与储能技术应用测验", score: 94 }]},
+        { id: "2021006", name: "王艺霖", task: "第4章 电力储能系统规划配置综合大作业", submitTime: "2026-08-25 11:40", hwScore: 93, testScore: 91, score: 93, weakness: "无", status: "已智能批阅", progress: 90, taskId: 5, homeworkScores: [{ title: "第4章 电力储能系统规划配置综合大作业", score: 93 }, { title: "第6章 电力储能系统性能检测与综合评估测验", score: 93 }]},
+        { id: "2021007", name: "顾问", task: "第2章 电力系统运行特性与储能技术应用测验", submitTime: "2026-08-25 14:20", hwScore: 76, testScore: 74, score: 76, weakness: "2.2 频率一次调频响应死区", status: "已智能批阅", progress: 65, taskId: 4, homeworkScores: [{ title: "第2章 电力系统运行特性与储能技术应用测验", score: 76 }, { title: "第1章 电力储能基础概念随堂练习", score: 76 }]},
         { id: "2021008", name: "李思源", task: "第2章 电力系统运行特性与储能技术应用测验", submitTime: "2026-08-25 15:50", hwScore: 78, testScore: 75, score: 78, weakness: "2.3 储能削峰填谷经济性核算", status: "已智能批阅", progress: 60 }
       ]
     };
@@ -5274,8 +5459,7 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Moodle-Sesskey": currentUser.sesskey || ""
-          },
+            "X-Moodle-Sesskey": currentUser.sesskey || "", taskId: 4, homeworkScores: [{ title: "第2章 电力系统运行特性与储能技术应用测验", score: 78 }, { title: "第6章 电力储能系统性能检测与综合评估测验", score: 78 }]},
           body: JSON.stringify(activePromptConfig)
         });
         if (res.ok) {
@@ -5469,10 +5653,9 @@
         const subEl = document.getElementById("wbSubtitleText");
         if (subEl) subEl.textContent = "提供大模型自主出题组卷、课程试卷库管理、PDF课件上传收录与全班作业智能批改。";
         
-        // Show teacher subnav, hide admin tab
+        // Show teacher subnav；运维与模型配置对教师可见但只读（P7）
         if (subnavBar) subnavBar.style.display = "flex";
-        if (tabBtnAdmin) tabBtnAdmin.style.display = "none";
-        if (currentTeacherSubTab === 'admin') currentTeacherSubTab = 'studio';
+        if (tabBtnAdmin) tabBtnAdmin.style.display = "flex";
         switchTeacherSubTab(currentTeacherSubTab || 'studio');
         
         if (navAnalytics) navAnalytics.textContent = "班级学情与成绩";
@@ -5509,6 +5692,15 @@
         if (teaAnalytics) teaAnalytics.style.display = "none";
         if (admAnalytics) admAnalytics.style.display = "block";
       }
+
+      // P7: 运维与模型配置——教师只读，管理员可写
+      const isAdminRole = activeRole === "admin";
+      ["btnSavePromptRules", "btnSaveSparkSvc", "btnResetSparkSvc"].forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.disabled = !isAdminRole;
+      });
+      const roNotice = document.getElementById("adminTeacherReadOnlyNotice");
+      if (roNotice) roNotice.style.display = isAdminRole ? "none" : "block";
     }
 
     function toggleRoleSimulation() {
@@ -6330,6 +6522,92 @@
     // Teacher Saved Exam Paper Library (试卷组库)
     let TEACHER_SAVED_PAPERS = JSON.parse(localStorage.getItem("energygraph_teacher_saved_papers") || "[]");
 
+    // 首次运行注入 6 套预置试卷组（每章一套，字段完整可复用）；
+    // 打种子版本标记，绝不覆盖教师已自行保存的数据。
+    const TEACHER_PAPER_SEED_FLAG = "energygraph_teacher_papers_seed_v1";
+    function buildSeedTeacherPapers() {
+      const q = (stem, a, b, c, d, correct, exp, cw, page, score) => ({
+        id: Date.now() + Math.floor(Math.random() * 100000),
+        type: "single",
+        typeText: "单选题",
+        score: score,
+        stem: stem,
+        options: [
+          { key: "A", text: a }, { key: "B", text: b },
+          { key: "C", text: c }, { key: "D", text: d }
+        ],
+        correct: correct,
+        explanation: exp,
+        source: { name: cw, page: page }
+      });
+      const mk = (id, title, chapter, tag, qs) => ({
+        id: id,
+        title: title,
+        chapter: chapter,
+        tag: tag,
+        totalScore: qs.reduce((s2, x) => s2 + x.score, 0),
+        questionCount: qs.length,
+        createdAt: "2026-09-08 10:00",
+        status: "草稿已保存",
+        questions: qs
+      });
+      return [
+        mk("paper_seed_ch1", "第1章 概述 随堂测验组", "第1章 概述", "阶段测验", [
+          q("目前全球装机规模最大的储能方式是？", "抽水蓄能", "锂离子电池储能", "飞轮储能", "超导磁储能", "A",
+            "抽水蓄能占全球储能装机绝大部分，技术最成熟、规模最大。", "1.2 电力储能技术的发展.pdf", 4, 40),
+          q("下列属于电磁储能的技术是？", "超导磁储能 (SMES)", "压缩空气储能", "全钒液流电池", "抽水蓄能", "A",
+            "超导磁储能利用超导线圈以电磁场形式储能，属电磁储能分支。", "1.2 电力储能技术的发展.pdf", 7, 30),
+          q("储能按电力系统应用场景划分，面向调峰的长时储能更关注哪项指标？", "额定容量与持续放电时长", "响应毫秒级速度", "电芯重量", "机柜体积", "A",
+            "调峰要求大容量长时放电，容量与时长是首要指标；响应速度更多影响调频场景。", "1.2 电力储能技术的发展.pdf", 9, 30)
+        ]),
+        mk("paper_seed_ch2", "第2章 电力系统运行特性 应用测验组", "第2章 电力系统与储能技术的应用", "阶段测验", [
+          q("电力系统频率波动的根本原因是？", "发电有功与负荷有功不平衡", "线路单相接地", "变压器励磁涌流", "三相电压不对称", "A",
+            "频率取决于有功平衡，不平衡直接引起转速与频率偏移。", "2.2 电力系统的运行特点和要求.pdf", 8, 40),
+          q("储能参与削峰填谷的基本运行策略是？", "低谷充电、高峰放电", "低谷放电、高峰充电", "全天满功率循环", "只充电不放电", "A",
+            "削峰填谷利用峰谷价差与负荷曲线，在负荷低谷蓄能、高峰释放。", "2.2 电力系统的运行特点和要求.pdf", 12, 30),
+          q("衡量电能质量的两个关键频率指标是？", "频率偏差与频率变化率", "电压幅值与相角", "谐波含量与闪变", "功率因数与不平衡度", "A",
+            "频率质量核心看偏差大小与变化快慢（RoCoF），两者直接关系调频需求。", "2.2 电力系统的运行特点和要求.pdf", 15, 30)
+        ]),
+        mk("paper_seed_ch3", "第3章 储能变流器与并网控制 测验组", "第3章 电力储能系统的组成及工作原理", "阶段测验", [
+          q("构网型 (GFM) 变流器与跟网型 (GFL) 的本质区别是？", "GFM 内部受控电压源可自建电压频率", "GFM 必须依赖 PLL 跟踪电网", "GFL 可自主建立电压", "两者完全等价", "A",
+            "GFM 等效受控电压源，模拟同步机惯量阻尼，不依赖外部电压基准；GFL 为受控电流源依赖锁相环。", "3.4 储能变流器拓扑及并网控制.pdf", 12, 40),
+          q("弱电网 (低短路比) 场景下 GFM 稳定运行的关键手段是？", "自适应虚拟阻抗与虚拟同步机控制", "无限提高 PLL 带宽", "切除全部滤波器", "降低开关频率至零", "A",
+            "虚拟同步机提供惯量阻尼，虚拟阻抗抑制宽频振荡，是弱网稳定的核心组合。", "3.4 储能变流器拓扑及并网控制.pdf", 15, 30),
+          q("储能变流器 (PCS) 并网必须满足的基本条件不包括？", "电芯出厂日期与电网一致", "电压幅值匹配", "频率同步", "相位一致", "A",
+            "并网条件为电压、频率、相位相序匹配，与电芯生产日期无关。", "3.4 储能变流器拓扑及并网控制.pdf", 8, 30)
+        ]),
+        mk("paper_seed_ch4", "第4章 规划配置与经济性 作业组", "第4章 电力储能系统的规划配置", "课后作业", [
+          q("全寿命周期单位电量综合成本指标是？", "LCOS", "IRR", "CAPEX", "BOP", "A",
+            "LCOS 涵盖投资运维损耗残值的度电成本，是储能经济性核心指标。", "4.2 电化学储能系统的规划配置.pdf", 16, 40),
+          q("储能容量规划中确定额定功率的首要依据是？", "应用场景的功率需求与充放电时长", "电芯颜色", "厂房面积", "供应商品牌", "A",
+            "额定功率由场景峰值功率需求与目标持续时长共同决定。", "4.2 电化学储能系统的规划配置.pdf", 5, 30),
+          q("电池容量配置中的冗余度设计主要应对？", "寿命衰减与可用容量下降", "电网频率过高", "电芯颜色褪色", "厂房通风", "A",
+            "电池随循环老化可用容量下降，规划需按寿命末期容量预留冗余。", "4.2 电化学储能系统的规划配置.pdf", 20, 30)
+        ]),
+        mk("paper_seed_ch5", "第5章 接入与运行维护 测验组", "第5章 电力储能系统的接入与运行维护", "综合大作业", [
+          q("储能参与一次调频的下垂控制中，下垂系数增大意味着？", "单位频差对应功率变化增大", "完全不响应频率", "等效惯量强制减小", "SOC 自动回升", "A",
+            "下垂系数即功率-频率斜率，越大同样频差出力变化越大，同时加剧 SOC 消耗。", "5.2 电力储能系统的运行控制.pdf", 11, 40),
+          q("储能电站日常巡检中电池一致性关注的核心参数是？", "单体电压与温度离散度", "机柜颜色一致性", "线缆长度一致", "厂商Logo一致", "A",
+            "单体电压与温度离散度反映电池一致性，是运维重点监测量。", "5.3 电力储能系统的运行维护.pdf", 6, 30),
+          q("储能系统接入电网前必须通过的检测不包括？", "电芯拆解重量测量", "低电压穿越", "功率控制精度", "充放电响应时间", "A",
+            "并网检测含 LVT、控制精度与响应时间等并网特性项；拆解重量与并网无关。", "5.1 电力储能系统的接入.pdf", 10, 30)
+        ]),
+        mk("paper_seed_ch6", "第6章 性能检测与综合评估 试卷组", "第6章 电力储能系统的性能检测与综合评估", "阶段测验", [
+          q("电池额定容量的标准定义条件是？", "规定倍率放电至截止电压的电量", "任意倍率10分钟电量", "充电吸收电量", "高温极限电量", "A",
+            "额定容量以规定温度与额定倍率放电至截止电压计。", "6.1 电力储能系统的性能检测.pdf", 6, 40),
+          q("下列属于储能系统并网性能检测项目的是？", "低电压穿越能力测试", "电芯拆解称重", "外壳颜色检验", "包装运输标签核对", "A",
+            "并网检测项目包括 LVT、响应时间与控制精度等并网特性。", "6.1 电力储能系统的性能检测.pdf", 9, 30),
+          q("综合评估中衡量经济性的核心全寿命指标是？", "LCOS", "单次转换效率", "重量能量密度", "占地面积", "A",
+            "LCOS 折算全寿命周期度电成本，是综合评估的经济性核心。", "6.2 电力储能系统的综合评估.pdf", 3, 30)
+        ])
+      ];
+    }
+    if (!localStorage.getItem(TEACHER_PAPER_SEED_FLAG) && TEACHER_SAVED_PAPERS.length === 0) {
+      TEACHER_SAVED_PAPERS = buildSeedTeacherPapers();
+      localStorage.setItem("energygraph_teacher_saved_papers", JSON.stringify(TEACHER_SAVED_PAPERS));
+      localStorage.setItem(TEACHER_PAPER_SEED_FLAG, "1");
+    }
+
     function calculateDraftTotalScore() {
       return teacherDraftQuestions.reduce((sum, q) => sum + (parseInt(q.score, 10) || 0), 0);
     }
@@ -6376,10 +6654,6 @@
     }
 
     function removeDraftQuestion(idx) {
-      if (teacherDraftQuestions.length <= 1) {
-        showToast("试卷至少需保留 1 道题目！", "warning");
-        return;
-      }
       teacherDraftQuestions.splice(idx, 1);
       renderTeacherDraftQuestions();
       showToast("已移除该题，总分已重新计算", "info");
@@ -6434,7 +6708,7 @@
             stem = preA.replace(/^[\s\S]*?题干[：:]/, "").trim();
           }
           stem = stem.replace(/^[】\]:：\s]+/, "").trim();
-          if (!stem) continue;
+          if (!stem || stem.replace(/\s/g, "").length < 8) continue;
 
           // Clean duplicate printed options if LLM outputs twice
           const lines = block.split("\n");
@@ -6445,23 +6719,28 @@
 
           const cleanOptText = (line) => line ? line.trim().replace(/^[A-Da-d][\.、\s]+/, "").trim() : "";
 
-          const options = [
-            { key: "A", text: cleanOptText(optAMatches[0]) || "选项A描述" },
-            { key: "B", text: cleanOptText(optBMatches[0]) || "选项B描述" },
-            { key: "C", text: cleanOptText(optCMatches[0]) || "选项C描述" },
-            { key: "D", text: cleanOptText(optDMatches[0]) || "选项D描述" }
+          // 零伪造：任一选项解析失败即整题不合格，绝不以占位文案补齐
+          const optionTexts = [
+            cleanOptText(optAMatches[0]),
+            cleanOptText(optBMatches[0]),
+            cleanOptText(optCMatches[0]),
+            cleanOptText(optDMatches[0])
           ];
+          if (optionTexts.some(t => !t)) continue;
+          const options = ["A", "B", "C", "D"].map((k, i) => ({ key: k, text: optionTexts[i] }));
 
           let correctMatch = block.match(/(?:正确答案|标准答案|答案)[：:\s]+([A-Da-d]+)/);
-          let correct = correctMatch ? correctMatch[1].toUpperCase().trim() : "A";
+          // 零伪造：缺答案字母的题不入卷（绝不猜测答案）
+          if (!correctMatch) continue;
+          let correct = correctMatch[1].toUpperCase().trim();
 
           let expMatch = block.match(/(?:考点解析|解析|解题要点|深度归因)[：:\s]*([\s\S]*?)(?=(?:关联课件|课件|出处|【第|$))/);
-          let explanation = expMatch ? expMatch[1].trim() : "依据电力系统储能技术大纲与核心机理推导得出。";
+          let explanation = expMatch ? expMatch[1].trim() : "";
 
           let cwMatch = block.match(/(?:关联课件|课件|出处)[：:\s]*([^\n\r]+)/);
           let cwStr = cwMatch ? cwMatch[1].trim() : "";
-          let cwName = "3.4 储能变流器拓扑及并网控制.pdf";
-          let cwPage = 12;
+          let cwName = "";
+          let cwPage = 0;
           if (cwStr) {
             let nameM = cwStr.match(/([^\s\[\]\(\)]+\.pdf)/);
             if (nameM) cwName = nameM[1].trim();
@@ -6490,25 +6769,30 @@
             const parsed = JSON.parse(repairedJson);
             if (Array.isArray(parsed) && parsed.length > 0) {
               for (const item of parsed) {
-                if (item.stem) {
-                  let opts = item.options || [];
-                  if (Array.isArray(opts)) {
-                    opts = opts.map(o => {
-                      if (typeof o === "string") {
-                        const m = o.match(/^([A-D])[\.、\s]+(.*)/);
-                        return m ? { key: m[1], text: m[2].trim() } : { key: "A", text: o };
-                      }
-                      return { key: o.key || "A", text: o.text || Object.values(o).find(v => v !== o.key) || "选项内容" };
-                    });
-                  }
-                  questions.push({
-                    stem: item.stem,
-                    options: opts,
-                    correct: String(item.correct || "A").trim().toUpperCase(),
-                    explanation: item.explanation || item.exp || "依据专业知识解析。",
-                    source: item.source || { name: "3.4 储能变流器拓扑及并网控制.pdf", page: 12 }
+                let opts = item.options || [];
+                if (Array.isArray(opts)) {
+                  opts = opts.map(o => {
+                    if (typeof o === "string") {
+                      const m = o.match(/^([A-D])[\.、\s]+(.*)/);
+                      return m ? { key: m[1], text: m[2].trim() } : { key: "?", text: "" };
+                    }
+                    return { key: String(o.key || "?").toUpperCase(), text: String(o.text ?? "").trim() };
                   });
                 }
+                // 零伪造：题干/选项/答案任一缺失即不入卷
+                const optKeys = new Set(opts.map(o => o.key));
+                const optsOk = opts.length >= 4
+                  && opts.every(o => String(o.text || "").trim())
+                  && ["A", "B", "C", "D"].every(k => optKeys.has(k));
+                const correctLetter = String(item.correct || "").trim().toUpperCase();
+                if (!item.stem || String(item.stem).trim().length < 8 || !optsOk || !/^[A-D]$/.test(correctLetter)) continue;
+                questions.push({
+                  stem: item.stem,
+                  options: opts,
+                  correct: correctLetter,
+                  explanation: item.explanation || item.exp || "",
+                  source: item.source || { name: "", page: 0 }
+                });
               }
             }
           } catch (e) {
@@ -6523,7 +6807,7 @@
     async function handleTeacherAutoGenerateDraft() {
       const chSelect = document.getElementById("teacherGenChapter");
       const chCode = chSelect ? chSelect.value : "ch3";
-      const chapterLabel = chSelect ? chSelect.options[chSelect.selectedIndex].text : "第3章 储能变流器拓扑与并网控制";
+      const chapterLabel = chSelect ? chSelect.options[chSelect.selectedIndex].text : "第3章 电力储能系统的组成及工作原理";
       const diff = document.getElementById("teacherGenDifficulty") ? document.getElementById("teacherGenDifficulty").value : "进阶应用";
       const count = parseInt(document.getElementById("teacherGenCount") ? document.getElementById("teacherGenCount").value : "3", 10) || 3;
       const qType = document.getElementById("teacherGenType") ? document.getElementById("teacherGenType").value : "单选题";
@@ -6625,33 +6909,33 @@ D. [选项D具体描述]
         titleInput.value = `${chapterLabel.replace(/^\w+\s*/, '')}【${diff}】测验`;
       }
 
-      // Distribute scores evenly to 100
-      const baseScore = Math.floor(100 / generatedQuestions.length);
-      const remScore = 100 - baseScore * generatedQuestions.length;
-
-      teacherDraftQuestions = generatedQuestions.map((item, idx) => {
-        let options = item.options || [];
-        if (!Array.isArray(options) || options.length < 4) {
-          options = [
-            { key: "A", text: options[0] ? options[0].text : "选项A描述" },
-            { key: "B", text: options[1] ? options[1].text : "选项B描述" },
-            { key: "C", text: options[2] ? options[2].text : "选项C描述" },
-            { key: "D", text: options[3] ? options[3].text : "选项D描述" }
-          ];
-        }
-        const qScore = baseScore + (idx === generatedQuestions.length - 1 ? remScore : 0);
-        return {
-          id: Date.now() + idx,
-          type: "single",
-          typeText: qType.includes("多选") ? "多选题" : (qType.includes("综合") ? "综合分析题" : "单选题"),
-          score: qScore,
-          stem: item.stem,
-          options: options,
-          correct: item.correct || (["B", "D", "A", "C"][idx % 4]),
-          explanation: item.explanation || item.exp || "根据课程教学大纲与课件核心知识点推导得出。",
-          source: item.source || { name: `${chapterLabel.replace(/^\w+\s*/, '')}.pdf`, page: 8 + idx * 3 }
-        };
+      // 零伪造：题干/选项/答案任一缺失的题目直接丢弃，绝不补假答案/假解析/假课件页码
+      const validQuestions = generatedQuestions.filter(item => {
+        const opts = Array.isArray(item.options) ? item.options : [];
+        const optKeys = new Set(opts.map(o => o.key));
+        return String(item.stem || "").trim().length >= 8
+          && opts.length >= 4
+          && opts.every(o => String(o.text || "").trim())
+          && ["A", "B", "C", "D"].every(k => optKeys.has(k))
+          && /^[A-D]$/.test(String(item.correct || "").trim().toUpperCase());
       });
+      const discardedCount = generatedQuestions.length - validQuestions.length;
+
+      // Distribute scores evenly to 100
+      const baseScore = Math.floor(100 / validQuestions.length);
+      const remScore = 100 - baseScore * validQuestions.length;
+
+      teacherDraftQuestions = validQuestions.map((item, idx) => ({
+        id: Date.now() + idx,
+        type: "single",
+        typeText: qType.includes("多选") ? "多选题" : (qType.includes("综合") ? "综合分析题" : "单选题"),
+        score: baseScore + (idx === validQuestions.length - 1 ? remScore : 0),
+        stem: item.stem,
+        options: item.options,
+        correct: String(item.correct).trim().toUpperCase(),
+        explanation: item.explanation || item.exp || "",
+        source: item.source || { name: "", page: 0 }
+      }));
 
       renderTeacherDraftQuestions();
       
@@ -6661,7 +6945,21 @@ D. [选项D具体描述]
         genBtn.style.opacity = "1";
       }
 
-      showToast(`大语言模型出题完成！已成功智能生成 ${teacherDraftQuestions.length} 道真实考题，试卷总分已均分为 100 分。`, "success");
+      if (discardedCount > 0) {
+        showToast(`出题完成：入库 ${teacherDraftQuestions.length} 题，另有 ${discardedCount} 题因题干/选项/答案字段不完整被如实丢弃（平台不伪造补齐）。`, "warning");
+      } else {
+        showToast(`大语言模型出题完成！已成功智能生成 ${teacherDraftQuestions.length} 道考题，试卷总分已均分为 100 分。`, "success");
+      }
+    }
+
+    function escapeHtml(v) {
+      // LLM/用户输入内插前统一转义：题干含引号或尖括号时不得破坏题目卡片 DOM
+      return String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     function renderTeacherDraftQuestions() {
@@ -6700,7 +6998,7 @@ D. [选项D具体描述]
           
           <div style="margin-bottom: 8px;">
             <label style="font-size: 12px; color: #4b5563; font-weight: 500; display: block; margin-bottom: 3px;">题干内容：</label>
-            <textarea class="draft-stem-textarea" onchange="updateDraftQuestionStem(${idx}, this.value)">${q.stem}</textarea>
+            <textarea class="draft-stem-textarea" onchange="updateDraftQuestionStem(${idx}, this.value)">${escapeHtml(q.stem)}</textarea>
           </div>
           
           <div style="margin-bottom: 8px;">
@@ -6708,8 +7006,9 @@ D. [选项D具体描述]
             <div class="draft-options-grid">
               ${q.options.map(opt => `
                 <div class="draft-opt-row">
-                  <strong style="color: ${q.correct === opt.key ? '#059669' : '#4b5563'}; width: 16px;">${opt.key}.</strong>
-                  <input type="text" value="${opt.text}" onchange="updateDraftQuestionOption(${idx}, '${opt.key}', this.value)">
+                  <input type="radio" class="draft-opt-radio" name="draft-correct-${idx}" title="点击圆圈设为正确答案" ${q.correct === opt.key ? 'checked' : ''} onclick="updateDraftQuestionCorrect(${idx}, '${opt.key}')">
+                  <strong style="color: ${q.correct === opt.key ? '#059669' : '#4b5563'}; width: 16px; cursor: pointer;" onclick="updateDraftQuestionCorrect(${idx}, '${opt.key}')">${opt.key}.</strong>
+                  <input type="text" value="${escapeHtml(opt.text)}" onchange="updateDraftQuestionOption(${idx}, '${opt.key}', this.value)">
                 </div>
               `).join('')}
             </div>
@@ -6728,13 +7027,13 @@ D. [选项D具体描述]
             
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 12px; color: #4b5563; font-weight: 500; white-space: nowrap;">考点解析：</label>
-              <textarea class="draft-exp-textarea" onchange="updateDraftQuestionExp(${idx}, this.value)">${q.explanation}</textarea>
+              <textarea class="draft-exp-textarea" onchange="updateDraftQuestionExp(${idx}, this.value)">${escapeHtml(q.explanation)}</textarea>
             </div>
           </div>
           
           <div style="margin-top: 6px; font-size: 11.5px; color: #6b7280; display: flex; align-items: center; gap: 4px;">
             <span> 关联教材课件：</span>
-            <span style="color: var(--brand-green); font-weight: 500;">${q.source ? q.source.name + ' 第 ' + q.source.page + ' 页' : '核心讲义'}</span>
+            <span style="color: var(--brand-green); font-weight: 500;">${q.source && q.source.name ? escapeHtml(q.source.name) + ' 第 ' + q.source.page + ' 页' : '课件溯源待补充'}</span>
           </div>
         </div>
       `).join('');
@@ -6841,9 +7140,9 @@ D. [选项D具体描述]
         return `
           <tr>
             <td>
-              <div style="font-weight: 600; color: #111827;">${p.title}</div>
+              <div style="font-weight: 600; color: #111827;">${escapeHtml(p.title)}</div>
             </td>
-            <td><span style="font-size: 12px; color: #4b5563;">${p.chapter}</span></td>
+            <td><span style="font-size: 12px; color: #4b5563;">${escapeHtml(p.chapter)}</span></td>
             <td><span class="badge ${tagClass}">${p.tag}</span></td>
             <td><strong>${p.questionCount || p.questions.length}</strong> 题</td>
             <td><strong style="color: #059669;">${p.totalScore}</strong> 分</td>
@@ -6873,7 +7172,7 @@ D. [选项D具体描述]
       
       const title = titleInput ? titleInput.value.trim() : "新建试卷组";
       const tag = tagSelect ? tagSelect.value : "阶段测验";
-      const chapter = chSelect ? chSelect.options[chSelect.selectedIndex].text : "第3章 储能变流器拓扑与并网控制";
+      const chapter = chSelect ? chSelect.options[chSelect.selectedIndex].text : "第3章 电力储能系统的组成及工作原理";
       const totalScore = calculateDraftTotalScore();
       
       const now = new Date();
@@ -7211,11 +7510,14 @@ D. [选项D具体描述]
             hwAvg: zhangsanHwAvg,
             midExam: zhangsanTestScore,
             finalScore: zhangsanFinal,
-            status: zhangsanStatus
+            status: zhangsanStatus,
+            hwDetail: s.homeworkScores || null
           };
         }
         
-        const hw = s.hwScore !== undefined ? s.hwScore : (s.score || 90);
+        // 平时作业均分 = 该生全部已批阅平时作业的平均分（可溯源，2026-09-10 P4b）
+        const hwList = Array.isArray(s.homeworkScores) && s.homeworkScores.length ? s.homeworkScores.map(h2 => h2.score) : null;
+        const hw = hwList ? Math.round(hwList.reduce((a, b) => a + b, 0) / hwList.length) : (s.hwScore !== undefined ? s.hwScore : (s.score || 90));
         const exam = s.testScore !== undefined ? s.testScore : (s.midExam || 90);
         const finalS = parseFloat((hw * 0.4 + exam * 0.6).toFixed(1));
         const st = finalS >= 90 ? "优秀" : (finalS >= 80 ? "良好" : "需关注");
@@ -7228,7 +7530,8 @@ D. [选项D具体描述]
           hwAvg: hw,
           midExam: exam,
           finalScore: finalS,
-          status: st
+          status: st,
+          hwDetail: s.homeworkScores || null
         };
       });
     }
@@ -7434,7 +7737,7 @@ D. [选项D具体描述]
               <div style="font-size: 32px; font-weight: 700; line-height: 1.1;">${earnedTotal} <span style="font-size: 16px; font-weight: normal;">/ ${paperTotal} 分</span></div>
             </div>
             <div style="text-align: right; font-size: 12.5px;">
-              <div>平时作业均分：${s.hwAvg} 分 (权重 40%)</div>
+              <div>平时作业均分：${s.hwAvg} 分 (权重 40%)${s.hwDetail ? `（${s.hwDetail.length} 次已批阅作业：${s.hwDetail.map(h2 => `${h2.title} ${h2.score} 分`).join("；")}）` : ""}</div>
               <div style="margin-top: 4px; font-weight: 600; font-size: 14px; color: #fef08a;">
                 折算课程综合总评：${s.hwAvg}×40% + ${earnedTotal}×60% = ${s.finalScore} 分
               </div>
@@ -7635,7 +7938,7 @@ D. [选项D具体描述]
             <div style="font-size: 32px; font-weight: 700; line-height: 1.1;">${totalEarned} <span style="font-size: 16px; font-weight: normal;">/ 100 分</span></div>
           </div>
           <div style="text-align: right; font-size: 12.5px;">
-            <div>平时作业均分：${s.hwAvg} 分 (权重 40%)</div>
+            <div>平时作业均分：${s.hwAvg} 分 (权重 40%)${s.hwDetail ? `（${s.hwDetail.length} 次已批阅作业：${s.hwDetail.map(h2 => `${h2.title} ${h2.score} 分`).join("；")}）` : ""}</div>
             <div style="margin-top: 4px; font-weight: 600; font-size: 14px; color: #fef08a;">
               折算课程综合总评：${s.hwAvg}×40% + ${totalEarned}×60% = ${s.finalScore} 分
             </div>
@@ -7748,10 +8051,14 @@ D. [选项D具体描述]
     // 3. Review & Mistake Modal
     // =========================================================================
     function openReviewModal(taskId) {
-      const task = COURSE_DATA.tasks.find(t => String(t.id) === String(taskId)) || COURSE_DATA.tasks.find(t => t.status === "done") || COURSE_DATA.tasks[3];
+      const override = _teacherReviewOverrideTask;
+      _teacherReviewOverrideTask = null;
+      const task = override || (COURSE_DATA.tasks.find(t => String(t.id) === String(taskId)) || COURSE_DATA.tasks.find(t => t.status === "done") || COURSE_DATA.tasks[3]);
       const paperTotal = task.totalScore || (Array.isArray(task.questions) ? task.questions.reduce((s, q) => s + (parseInt(q.score, 10) || 0), 0) : 100) || 100;
-      const earnedTotal = task.score !== null && task.score !== undefined ? task.score : (Array.isArray(task.questions) ? task.questions.reduce((s, q) => s + (parseInt(q.earnedScore !== undefined ? q.earnedScore : (q.isCorrect !== false ? q.score : 0), 10) || 0), 0) : 0);
-      const pct = paperTotal > 0 ? Math.round((earnedTotal / paperTotal) * 100) : 0;
+      // 零伪造：仅按显式逐题记录计分；无记录一律显示"未作答 / 待批阅"，绝不默认全对
+      const hasRecords = Array.isArray(task.questions) && task.questions.some(q => q.userAns !== undefined || q.earnedScore !== undefined || q.isCorrect !== undefined);
+      const earnedTotal = hasRecords ? task.questions.reduce((s, q) => s + (parseInt(q.earnedScore, 10) || 0), 0) : 0;
+      const pct = hasRecords && paperTotal > 0 ? Math.round((earnedTotal / paperTotal) * 100) : 0;
       
       document.getElementById("reviewModalTitle").textContent = `${task.title} - 批改与解析`;
       
@@ -7759,8 +8066,8 @@ D. [选项D具体描述]
       area.innerHTML = `
         <div class="review-score-banner">
           <div>
-            <div style="font-size: 13px; opacity: 0.9;">测验最终得分</div>
-            <div style="font-size: 32px; font-weight: 700; line-height: 1.1;">${earnedTotal} <span style="font-size: 16px; font-weight: normal;">/ ${paperTotal} 分</span></div>
+            <div style="font-size: 13px; opacity: 0.9;">${hasRecords ? "测验最终得分" : "批阅状态"}</div>
+            <div style="font-size: 32px; font-weight: 700; line-height: 1.1;">${hasRecords ? `${earnedTotal} <span style="font-size: 16px; font-weight: normal;">/ ${paperTotal} 分</span>` : "未作答 / 待批阅"}</div>
           </div>
           <div style="text-align: right; font-size: 12.5px;">
             <div>得分率：${pct}% &nbsp;|&nbsp; 题量：${task.questions ? task.questions.length : 0} 题</div>
@@ -7777,12 +8084,17 @@ D. [选项D具体描述]
               : '建议结合智能助教与考点讲义重点强化失分题目，可发起「向助教发起学情诊断」进行靶向巩固。')}
         </div>
         
+        <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 14px; margin-bottom: 16px; color: #475569; font-size: 12.5px;">
+          <strong>评分规则：</strong>单选题答对得满分、答错 0 分；多选题漏选得该题 50%、错选 0 分；判断题答对得满分、答错 0 分；综合分析题按步骤给分。
+        </div>
+
         <div style="display: flex; flex-direction: column; gap: 16px;">
           ${task.questions.map((q, idx) => {
-            const isQCorrect = q.isCorrect !== false && (q.earnedScore === undefined || q.earnedScore === q.score);
-            const isPartial = !isQCorrect && (q.earnedScore > 0);
+            const hasQRecord = q.userAns !== undefined || q.earnedScore !== undefined || q.isCorrect !== undefined;
+            const isQCorrect = hasQRecord && (q.isCorrect === true || q.earnedScore === q.score);
+            const isPartial = hasQRecord && !isQCorrect && parseInt(q.earnedScore, 10) > 0;
             const qType = q.typeText || (q.type === 'multi' ? '多选题' : (q.type === 'judge' ? '判断题' : '单选题'));
-            const statusLabel = isQCorrect ? `正确 (+${q.earnedScore !== undefined ? q.earnedScore : q.score}分)` : (isPartial ? `部分得分 (${q.earnedScore}/${q.score}分)` : `错误 (0/${q.score}分)`);
+            const statusLabel = !hasQRecord ? `未作答 (0/${q.score}分)` : (isQCorrect ? `正确 (+${q.earnedScore !== undefined ? q.earnedScore : q.score}分)` : (isPartial ? `部分得分 (${q.earnedScore}/${q.score}分)` : `错误 (0/${q.score}分)`));
             const uAns = q.userAns || "";
             
             let optionsHTML = "";
@@ -10146,14 +10458,17 @@ D. [选项D具体描述]
       const chCode = document.getElementById("teacherGenChapter").value;
       const diff = document.getElementById("teacherGenDifficulty").value;
       
+      // 章节名与知识图谱/课件 canonical 名单一致（2026-09-10 反馈 P1c）
       const chMap = {
-        ch1: { title: "第1章 储能技术分类与前沿发展考题", name: "1.2 电力储能技术的发展.pdf" },
-        ch3: { title: "第3章 储能变流器并网与虚拟同步机控制强化测验", name: "3.4 储能变流器拓扑及并网控制.pdf" },
-        ch4: { title: "第4章 储能容量配置与 LCOS 经济性评估案例题", name: "4.2 电化学储能系统的规划配置.pdf" },
-        ch5: { title: "第5章 储能一次调频与弱网支撑综合题", name: "5.2 电力储能系统的运行控制.pdf" }
+        "第1章 概述": { title: "第1章 储能技术分类与前沿发展考题", name: "1.2 电力储能技术的发展.pdf" },
+        "第2章 电力系统与储能技术的应用": { title: "第2章 电力系统运行特性应用考题", name: "2.2 电力系统的运行特点和要求.pdf" },
+        "第3章 电力储能系统的组成及工作原理": { title: "第3章 储能变流器并网与虚拟同步机控制强化测验", name: "3.4 储能变流器拓扑及并网控制.pdf" },
+        "第4章 电力储能系统的规划配置": { title: "第4章 储能容量配置与 LCOS 经济性评估案例题", name: "4.2 电化学储能系统的规划配置.pdf" },
+        "第5章 电力储能系统的接入与运行维护": { title: "第5章 储能一次调频与弱网支撑综合题", name: "5.2 电力储能系统的运行控制.pdf" },
+        "第6章 电力储能系统的性能检测与综合评估": { title: "第6章 电力储能系统性能检测与综合评估考题", name: "6.1 电力储能系统的性能检测.pdf" }
       };
       
-      const info = chMap[chCode] || chMap.ch3;
+      const info = chMap[chCode] || chMap["第3章 电力储能系统的组成及工作原理"];
       
       const newTask = {
         id: Date.now(),
@@ -10208,7 +10523,7 @@ D. [选项D具体描述]
       COURSE_DATA.notices.unshift({
         id: Date.now() + 1,
         type: "announcement",
-        chapter: chCode,
+        chapter: "ch" + ((chCode.match(/第(\d+)章/) || [])[1] || "3"),
         tag: "作业发布",
         tagClass: "notice-tag-top",
         title: `【新作业发布】${newTask.title}`,
@@ -10222,6 +10537,54 @@ D. [选项D具体描述]
       
       showToast(` 科大讯飞星火大模型已成功从《${info.name}》生成 2 道高质量考题并发布至学生任务中心！`, "success");
       switchView("tasks");
+    }
+
+    function ensureStudentSheet(stu) {
+      // 演示数据按学生各自总分推导逐题作答记录：错题如实 0 分，多选题含
+      // 漏选半分样本；绝不默认全对（2026-09-10 反馈 P3）。
+      if (stu._sheet) return stu._sheet;
+      const task = COURSE_DATA.tasks.find(t => String(t.id) === String(stu.taskId));
+      if (!task || !Array.isArray(task.questions) || task.questions.length === 0) return null;
+      const total = task.questions.reduce((s2, q) => s2 + (parseInt(q.score, 10) || 0), 0);
+      let remaining = Math.round(((parseInt(stu.score, 10) || 0) / 100) * total);
+      const wrongOf = (correct) => {
+        const last = String(correct).slice(-1).toUpperCase();
+        return { "A": "B", "B": "C", "C": "D", "D": "A" }[last] || "B";
+      };
+      const questions = task.questions.map(q => {
+        const copy = JSON.parse(JSON.stringify(q));
+        const isMulti = (copy.typeText || "").includes("多选") || copy.type === "multi";
+        const correct = String(copy.correct || "").toUpperCase();
+        if (remaining >= copy.score) {
+          copy.userAns = correct; copy.earnedScore = copy.score; copy.isCorrect = true; remaining -= copy.score;
+        } else if (isMulti && remaining >= Math.round(copy.score / 2)) {
+          copy.userAns = correct.slice(0, 1); copy.earnedScore = Math.round(copy.score / 2); copy.isCorrect = false; remaining -= copy.earnedScore;
+        } else {
+          copy.userAns = correct.length > 1 ? (correct.slice(0, 1) === "A" ? "BD" : "AD") : wrongOf(correct);
+          copy.earnedScore = 0; copy.isCorrect = false;
+        }
+        return copy;
+      });
+      stu._sheet = { taskId: String(task.id), title: task.title, questions };
+      return stu._sheet;
+    }
+
+    function openTeacherReviewStudent(stuId) {
+      const stu = COURSE_DATA.students.find(s2 => String(s2.id) === String(stuId));
+      if (!stu) return;
+      const sheet = ensureStudentSheet(stu);
+      if (sheet) {
+        const sourceTask = COURSE_DATA.tasks.find(t => String(t.id) === String(sheet.taskId));
+        const clone = sourceTask ? JSON.parse(JSON.stringify(sourceTask)) : { title: sheet.title, questions: [] };
+        clone.questions = sheet.questions;
+        const paperTotal = clone.questions.reduce((s2, q) => s2 + (parseInt(q.score, 10) || 0), 0);
+        clone.score = clone.questions.reduce((s2, q) => s2 + (parseInt(q.earnedScore, 10) || 0), 0);
+        clone.totalScore = paperTotal;
+        _teacherReviewOverrideTask = clone;
+      } else {
+        _teacherReviewOverrideTask = null;
+      }
+      openReviewModal(stu.taskId || 4);
     }
 
     function renderStudentGradingTable() {
@@ -10248,7 +10611,7 @@ D. [选项D具体描述]
             </span>
           </td>
           <td>
-            <button class="btn-read-pdf" style="padding: 2px 8px; font-size: 12px;" onclick="openReviewModal(${stu.taskId || 4})">查看答卷</button>
+            <button class="btn-read-pdf" style="padding: 2px 8px; font-size: 12px;" onclick="openTeacherReviewStudent('${stu.id}')">查看答卷</button>
           </td>
         `;
         tbody.appendChild(tr);
