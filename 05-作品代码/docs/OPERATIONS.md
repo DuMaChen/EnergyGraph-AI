@@ -16,7 +16,7 @@
 Agent Adapter → 讯飞星辰 Workflow (7494978072491315200) + 星火模型 + 课程知识库
 ```
 
-- 部署目录：`/opt/jbgs-course-agent`（已初始化 git 仓库，main 分支）
+- 部署目录：`/opt/jbgs-course-agent/05-作品代码`（git 仓库 `DuMaChen/EnergyGraph-AI` main 分支；2026-09-12 仓库按参赛目录结构重组，代码整体位于 `05-作品代码/`）
 - 环境与密钥：`deploy/.env`（不入库）
 - 健康检查：`curl http://127.0.0.1:8081/health`（容器内网）或各容器 `docker ps` 状态
 
@@ -81,7 +81,7 @@ UI 类改动额外要求：强刷后人工核对目标视图（本环境无图�
 docker logs deploy-agent-adapter-1 --since 30m --timestamps 2>&1 | grep -E "WORKFLOW_ERROR|DIAGNOSIS|QUIZ"
 
 # 重建单个服务
-cd /opt/jbgs-course-agent/deploy && docker compose build <svc> && docker compose up -d <svc>
+cd /opt/jbgs-course-agent/05-作品代码/deploy && docker compose build <svc> && docker compose up -d <svc>
 
 # 数据库直查（成绩核验等）
 PW=$(grep -E "^MARIADB_ROOT_PASSWORD=" deploy/.env | cut -d= -f2 | tr -d '"')

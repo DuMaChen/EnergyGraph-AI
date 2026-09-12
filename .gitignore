@@ -4,12 +4,12 @@ deploy/.env*
 !deploy/.env.example
 
 # Course raw materials and normalized PDF binaries
-course-data/*
-!course-data/.gitkeep
-!course-data/normalized/
-course-data/normalized/*.pdf
-!course-data/normalized/manifest.json
-!course-data/normalized/graph-baseline.json
+05-作品代码/course-data/*
+!05-作品代码/course-data/.gitkeep
+!05-作品代码/course-data/normalized/
+05-作品代码/course-data/normalized/*.pdf
+!05-作品代码/course-data/normalized/manifest.json
+!05-作品代码/course-data/normalized/graph-baseline.json
 
 # Caches and runtime artifacts
 reports/
@@ -19,7 +19,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .DS_Store
-scripts/sample_pdf_b64.txt
+05-作品代码/scripts/sample_pdf_b64.txt
 
 # Original teaching files and registration material stay out of the source
 # repository; the normalized manifest and source metadata are already tracked
@@ -31,7 +31,6 @@ scripts/sample_pdf_b64.txt
 
 # Server-only backup and release state must never be pushed to GitHub.
 /backups/
-/05-作品代码/*.tar.gz
 
 # AI Assistant, Agent framework & IDE metadata
 .agent/
@@ -46,14 +45,10 @@ scripts/sample_pdf_b64.txt
 *.swp
 *.swo
 
-# Competition submission folders (kept local, only platform user manual is synced)
-/01-参赛信息/
-/02-伦理与安全合规性声明/
-/03-作品Demo/
-/04-作品方案/
-/05-作品代码/
-/06-效果验证报告/
-/07-其他材料/
+# Competition submission structure (02/03/05 tracked on GitHub; 04/06/07 kept
+# as empty placeholders via .gitkeep). Local-only evidence lives in 06 but
+# stays out of the repository.
+/06-效果验证报告/acceptance/
 
 
 
@@ -61,14 +56,14 @@ scripts/sample_pdf_b64.txt
 # Runtime backups and throw-away sync areas (contain DB dumps and data snapshots)
 backups/
 tmp-sync/
-acceptance/test-reports/manual/raw/
+05-作品代码/archive/test-reports/manual/raw/
 
 # macOS resource forks
 ._*
 .DS_Store
 
 # Derived courseware page images (regenerable from course-data, served by nginx)
-agent-ui/slides/
+05-作品代码/agent-ui/slides/
 
 # Acceptance evidence stays local-only (duplicated by archive/, 31MB screenshots)
 /acceptance/

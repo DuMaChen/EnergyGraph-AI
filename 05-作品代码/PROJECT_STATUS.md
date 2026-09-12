@@ -16,7 +16,7 @@
 | 生产地址 | `https://energygraph.icu`（工作空间 `/agent/`） |
 | 服务器 | 阿里云，Docker Compose：Caddy + Moodle 4.5 + Agent UI + Agent Adapter + MariaDB |
 | 容器状态 | 全部 running / healthy |
-| 部署目录 | `/opt/jbgs-course-agent`（git 仓库，main） |
+| 部署目录 | `/opt/jbgs-course-agent/05-作品代码`（仓库 `DuMaChen/EnergyGraph-AI`，2026-09-12 起按参赛目录结构组织） |
 | 账号 | teacher / student 公开教学口令见 USER_MANUAL.md；admin 口令专人保管（2026-09-09 已轮换，不入公开文档） |
 
 ## 3. 功能现状矩阵
